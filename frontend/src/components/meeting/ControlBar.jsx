@@ -64,7 +64,6 @@ export function ControlBar({
     }
   };
 
-  
   useEffect(() => {
     const handler = (e) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
@@ -75,7 +74,6 @@ export function ControlBar({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  
   const toggleScreenShare = async () => {
     if (!localParticipant) return;
 
@@ -105,7 +103,6 @@ export function ControlBar({
         screenTrackRef.current = videoTrack;
         setIsScreenSharing(true);
 
-        
         videoTrack.onended = () => {
           localParticipant.unpublishTrack(videoTrack).catch(() => {});
           screenTrackRef.current = null;
@@ -119,7 +116,6 @@ export function ControlBar({
     }
   };
 
-  
   const sendReaction = (emoji) => {
     if (localParticipant) {
       const encoder = new TextEncoder();

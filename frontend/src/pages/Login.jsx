@@ -40,7 +40,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
+  const [loginMethod, setLoginMethod] = useState('password'); 
 
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
@@ -149,7 +149,7 @@ export default function Login() {
       className="flex min-h-screen bg-background text-foreground font-sans relative overflow-hidden items-center justify-center"
       onMouseMove={handleMouseMove}
     >
-      {/* Orbs — stronger opacity */}
+      {}
       <div className="absolute inset-0 pointer-events-none opacity-90 dark:opacity-50 transition-opacity duration-500">
         <motion.div
           style={{ x: orb1X, y: orb1Y, willChange: 'transform' }}
@@ -193,7 +193,7 @@ export default function Login() {
           {!showOtpScreen ? (
             <form onSubmit={handleSubmit} className="space-y-5">
 
-              {/* Full Name — sign up only */}
+              {}
               {isSignUp && (
                 <div className="space-y-1.5">
                   <label htmlFor="name" className="text-[13px] font-medium text-foreground">Full Name</label>
@@ -209,7 +209,7 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Email */}
+              {}
               <div className="space-y-1.5 relative">
                 <label htmlFor="email" className="text-[13px] font-medium text-foreground">Work Email</label>
                 <div className="relative">
@@ -260,7 +260,7 @@ export default function Login() {
                 )}
               </div>
 
-              {/* Password — for sign up or password login */}
+              {}
               {(isSignUp || (!isSignUp && loginMethod === 'password')) && (
                 <div className="space-y-1.5">
                   <label htmlFor="password" className="text-[13px] font-medium text-foreground">Password</label>
@@ -303,7 +303,7 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Login Method Toggle */}
+              {}
               {!isSignUp && (
                 <div className="flex justify-end">
                   <button

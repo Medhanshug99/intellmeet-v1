@@ -17,7 +17,6 @@ import { ControlBar } from '../components/meeting/ControlBar';
 import { SidePanel } from '../components/meeting/SidePanel';
 import { FloatingReactions } from '../components/meeting/FloatingReactions';
 
-
 const SOCKET_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5005/api/v1')
   .replace(/\/api\/v\d+\/?$/, '');
 
@@ -34,7 +33,6 @@ function RoomToast({ message, type = 'info', onDismiss }) {
     </div>
   );
 }
-
 
 export default function MeetingRoom() {
   const { id: meetingId } = useParams();
@@ -80,7 +78,6 @@ export default function MeetingRoom() {
     fetchMeetingById(meetingId);
   }, [meetingId, fetchMeetingById]);
 
-
   useEffect(() => {
     if (!hasJoined) return;
 
@@ -114,8 +111,7 @@ export default function MeetingRoom() {
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             const finalPhrase = event.results[i][0].transcript;
-            
-            
+
             setMeetingTranscript(prev => [...prev, `${userName || 'You'}: ${finalPhrase}`]);
             
             socketRef.current.emit('send-message', {
@@ -238,7 +234,6 @@ export default function MeetingRoom() {
         mediaRecorderRef.current.start();
         setIsRecording(true);
 
-        
         stream.getVideoTracks()[0].onended = () => {
           if (mediaRecorderRef.current.state === 'recording') {
             mediaRecorderRef.current.stop();

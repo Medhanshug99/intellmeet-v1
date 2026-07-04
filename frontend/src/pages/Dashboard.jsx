@@ -118,7 +118,6 @@ const MENU_ITEMS = [
   { id: 'pricing', label: 'Upgrade to Pro', icon: CreditCard, path: '/pricing' },
 ];
 
-
 function HeroCarousel() {
   const [current, setCurrent] = useState(0);
 
@@ -191,7 +190,6 @@ function ThemeToggle() {
   );
 }
 
-
 function NewMeetingModal({ onClose, onCreate }) {
   const [title, setTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -255,7 +253,6 @@ function NewMeetingModal({ onClose, onCreate }) {
     </div>
   );
 }
-
 
 export default function Dashboard() {
   const { user, logout, deleteAccount } = useAuthStore();

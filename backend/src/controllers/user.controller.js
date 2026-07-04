@@ -1,7 +1,6 @@
 const userService = require('../services/user.service');
 const { sendSuccess } = require('../utils/response');
 
-
 const getMe = async (req, res, next) => {
   try {
     const user = await userService.getUserProfile(req.user.id);
@@ -10,7 +9,6 @@ const getMe = async (req, res, next) => {
     next(error);
   }
 };
-
 
 const updateMe = async (req, res, next) => {
   try {

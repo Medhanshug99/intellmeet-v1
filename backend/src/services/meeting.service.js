@@ -88,7 +88,7 @@ const updateMeeting = async (meetingId, updateData, userId) => {
         : updateData[key];
     }
   }
-  // Legacy field mapping
+  
   if (updateData.scheduledStartTime !== undefined) mongoData.scheduledAt = new Date(updateData.scheduledStartTime);
   if (updateData.actualStartTime !== undefined) mongoData.startedAt = new Date(updateData.actualStartTime);
   if (updateData.actualEndTime !== undefined) mongoData.endedAt = new Date(updateData.actualEndTime);
@@ -162,7 +162,6 @@ const leaveMeeting = async (meetingId, userId) => {
   return null;
 };
 
-// Lazy Redis/Queue setup — only used when REDIS_URL is configured
 let summaryQueue = null;
 if (process.env.REDIS_URL) {
   const { Queue } = require('bullmq');
@@ -188,11 +187,11 @@ const processMeetingAI = async (meetingId, transcript, userId) => {
   }, { new: true });
 
   if (summaryQueue) {
-    // Enqueue to background worker when Redis is available
+    
     await summaryQueue.add('summarizeMeeting', { meetingId, transcript, userId });
     return { meeting: updatedMeeting, message: 'AI summary is processing in the background' };
   } else {
-    // Fallback: process synchronously in-process when Redis is not available
+    
     console.log('[processMeetingAI] Redis not available — running AI synchronously');
     try {
       const aiResult = await aiService.processMeetingTranscript(transcript);
@@ -217,7 +216,6 @@ const processMeetingAI = async (meetingId, transcript, userId) => {
     return { meeting: updatedMeeting, message: 'AI summary processed synchronously' };
   }
 };
-
 
 const updateMeetingSummary = async (meetingId, summaryData, userId) => {
   const meeting = await Meeting.findById(meetingId);
@@ -250,5 +248,4 @@ module.exports = {
   processMeetingAI,
   updateMeetingSummary
 };
-
 

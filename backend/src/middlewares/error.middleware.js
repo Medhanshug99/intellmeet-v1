@@ -7,7 +7,6 @@ const errorHandler = (err, req, res, next) => {
   let message = err.message || 'Internal Server Error';
   let errors = err.errors || [];
 
-
   if (err.code === 11000) {
     statusCode = 400;
     const field = Object.keys(err.keyValue || {})[0] || 'field';
@@ -42,7 +41,6 @@ const errorHandler = (err, req, res, next) => {
     statusCode
   });
 };
-
 
 class AppError extends Error {
   constructor(message, statusCode, errors = []) {

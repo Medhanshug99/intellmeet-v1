@@ -4,7 +4,6 @@ const { protect } = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-
 router.use(protect);
 
 router.route('/me')

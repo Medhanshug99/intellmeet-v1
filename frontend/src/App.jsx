@@ -4,7 +4,6 @@ import { useAuthStore } from './store/authStore';
 import ErrorBoundary from './components/ErrorBoundary';
 import { FullPageLoader } from './components/ui/LoadingStates';
 
-
 const Login = React.lazy(() => import('./pages/Login'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const MeetingRoom = React.lazy(() => import('./pages/MeetingRoom'));

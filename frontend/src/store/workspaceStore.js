@@ -12,7 +12,6 @@ export const useWorkspaceStore = create((set) => ({
       const res = await api.get('/workspaces');
       set({ workspaces: res.data.data || [], isLoading: false });
 
-
             if (res.data.data && res.data.data.length > 0) {
         set(state => {
           if (!state.currentWorkspace) {

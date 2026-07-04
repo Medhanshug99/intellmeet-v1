@@ -68,7 +68,7 @@ const updateTask = async (taskId, updateData, userId) => {
 
   const mongoData = {};
   if (updateData.title !== undefined) mongoData.title = updateData.title;
-  if (updateData.content !== undefined) mongoData.title = updateData.content; // legacy
+  if (updateData.content !== undefined) mongoData.title = updateData.content; 
   if (updateData.description !== undefined) mongoData.description = updateData.description;
   if (updateData.status !== undefined) mongoData.status = updateData.status;
   if (updateData.dueDate !== undefined) mongoData.dueDate = new Date(updateData.dueDate);
@@ -103,6 +103,4 @@ module.exports = {
   updateTask,
   deleteTask
 };
-
-
 

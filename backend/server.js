@@ -4,20 +4,17 @@ const app = require('./src/app');
 const { connectDB } = require('./src/config/db');
 const redis = require('./src/config/redis');
 
-
 const PORT = process.env.PORT || 5005;
 
 const server = http.createServer(app);
 
-
 const { Server } = require('socket.io');
 
-// Use same multi-origin CORS logic as app.js
 const allowedSocketOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3005')
   .split(',')
   .map(o => o.trim())
   .concat(['http://localhost:3005', 'http://localhost:5173', 'http://localhost:3000'])
-  .filter((v, i, a) => a.indexOf(v) === i); // dedupe
+  .filter((v, i, a) => a.indexOf(v) === i); 
 
 const io = new Server(server, {
   cors: {
@@ -27,10 +24,7 @@ const io = new Server(server, {
   }
 });
 
-
-
 require('./src/sockets/meeting.sockets')(io);
-
 
 process.on('uncaughtException', (err) => {
   console.error('UNCAUGHT EXCEPTION! Shutting down...');
@@ -38,12 +32,10 @@ process.on('uncaughtException', (err) => {
   process.exit(1);
 });
 
-
 connectDB().then(() => {
 
   redis.initRedis();
 
-  // Initialize background workers
   require('./src/workers/summaryWorker');
 
   server.listen(PORT, () => {
@@ -54,7 +46,6 @@ connectDB().then(() => {
   console.error(err);
   process.exit(1);
 });
-
 
 process.on('unhandledRejection', (err) => {
   console.error('UNHANDLED REJECTION! Shutting down...');

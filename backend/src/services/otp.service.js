@@ -16,7 +16,6 @@ const generateNumericOtp = () => {
 const generateAndSendOtp = async (email, type) => {
   const normalizedEmail = email.toLowerCase();
 
-  // For login: verify the user actually exists before sending OTP
   if (type === 'login') {
     const user = await User.findOne({ email: normalizedEmail }).select('_id');
     if (!user) {
@@ -60,7 +59,6 @@ const generateAndSendOtp = async (email, type) => {
   return { sent: true };
 };
 
-
 const verifyOtpToken = async (email, token, type) => {
   const normalizedEmail = email.toLowerCase();
   
@@ -90,7 +88,6 @@ const verifyOtpToken = async (email, token, type) => {
     throw new AppError(`Invalid code. ${remaining} attempts remaining.`, 400);
   }
 
-  // Code is valid
   record.isUsed = true;
   await record.save();
 

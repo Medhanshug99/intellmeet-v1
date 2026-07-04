@@ -5,7 +5,6 @@ const Workspace = require('../models/Workspace');
 const User = require('../models/User');
 const aiService = require('../services/ai.service');
 
-// Only start the worker when Redis is explicitly configured
 const redisUrl = process.env.REDIS_URL;
 
 if (!redisUrl) {
@@ -34,13 +33,11 @@ if (!redisUrl) {
 
       const aiResult = await aiService.processMeetingTranscript(transcript);
 
-      // Update meeting status
       await Meeting.findByIdAndUpdate(meetingId, {
         status: 'COMPLETED',
         endedAt: meeting.endedAt || new Date(),
       });
 
-      // Create AiSummary document
       await AiSummary.findOneAndUpdate(
         { meetingId },
         {
@@ -53,7 +50,6 @@ if (!redisUrl) {
         { upsert: true, new: true }
       );
 
-      // Get workspace members to match task assignees
       const workspace = await Workspace.findById(meeting.workspaceId);
       const memberIds = workspace ? workspace.memberIds.map(m => m.userId) : [];
       const workspaceUsers = memberIds.length > 0

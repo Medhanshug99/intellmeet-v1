@@ -16,7 +16,7 @@ const createWorkspace = async (workspaceData, userId) => {
     ownerId: userId,
     memberIds: [{ userId, role: 'ADMIN' }]
   });
-  // Also store workspaceId on user
+  
   await User.findByIdAndUpdate(userId, { $addToSet: { workspaceIds: workspace._id } });
   return workspace;
 };

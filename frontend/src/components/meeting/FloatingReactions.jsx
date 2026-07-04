@@ -22,8 +22,7 @@ export function FloatingReactions() {
         } catch (e) {
           console.error('Failed to parse reaction payload:', e);
         }
-        
-        
+
         setTimeout(() => {
           setReactions(prev => prev.filter(r => r.id !== id));
         }, 3000);

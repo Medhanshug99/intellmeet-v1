@@ -7,7 +7,6 @@ const sendSuccess = (res, statusCode, message, data = {}) => {
   });
 };
 
-
 const successResponse = (res, statusCode, message, data = {}) =>
   sendSuccess(res, statusCode, message, data);
 

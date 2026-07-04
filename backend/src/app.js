@@ -20,14 +20,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-
-
-
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3005')
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
-
 
 ['http://localhost:3005', 'http://localhost:5173', 'http://localhost:3000'].forEach(o => {
   if (!allowedOrigins.includes(o)) allowedOrigins.push(o);
@@ -44,7 +40,6 @@ app.use(cors({
   },
   credentials: true,
 }));
-
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));

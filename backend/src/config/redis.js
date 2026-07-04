@@ -23,7 +23,6 @@ const initRedis = () => {
   }
 };
 
-
 const blacklistToken = async (jti, ttlSeconds) => {
   if (!enabled || !client) return;
   try {
@@ -32,7 +31,6 @@ const blacklistToken = async (jti, ttlSeconds) => {
     console.error('[redis] blacklistToken failed:', err.message);
   }
 };
-
 
 const isBlacklisted = async (jti) => {
   if (!enabled || !client) return false;

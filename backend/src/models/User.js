@@ -35,7 +35,6 @@ const userSchema = new mongoose.Schema({
   }],
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
 
-// Virtual so name always reflects displayName if not set separately
 userSchema.pre('save', function(next) {
   if (!this.name) this.name = this.displayName;
   next();

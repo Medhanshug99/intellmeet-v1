@@ -15,7 +15,6 @@ export function VideoGrid({ isVideoOff, localReaction }) {
   const room = useRoomContext();
   const [activeReactions, setActiveReactions] = useState({});
 
-  
   useEffect(() => {
     if (!room) return;
     const handleDataReceived = (payload, participant, kind, topic) => {
@@ -47,7 +46,6 @@ export function VideoGrid({ isVideoOff, localReaction }) {
     };
   }, [room]);
 
-  
   useEffect(() => {
     if (localReaction && localReaction.identity) {
       setActiveReactions(prev => ({ ...prev, [localReaction.identity]: localReaction.emoji }));

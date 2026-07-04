@@ -1,7 +1,6 @@
 const { OpenAI } = require('openai');
 const { AppError } = require('../middlewares/error.middleware');
 
-// Lazy client — only instantiated when an actual AI call is made
 let _openai = null;
 const getOpenAI = () => {
   if (!_openai) {
@@ -12,7 +11,6 @@ const getOpenAI = () => {
   }
   return _openai;
 };
-
 
 const processMeetingTranscript = async (transcript) => {
   if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_openai_api_key_here') {
@@ -71,7 +69,7 @@ const processMeetingTranscript = async (transcript) => {
       attempt++;
       console.error(`[AI Service Error] Attempt ${attempt} failed:`, error);
       if (attempt >= maxRetries) {
-        // Return a graceful fallback instead of throwing
+        
         return {
           overview: 'AI summary generation failed. Please add manual notes.',
           keyDecisions: [],
@@ -80,7 +78,7 @@ const processMeetingTranscript = async (transcript) => {
           failed: true
         };
       }
-      // Exponential backoff
+      
       await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 1000));
     }
   }

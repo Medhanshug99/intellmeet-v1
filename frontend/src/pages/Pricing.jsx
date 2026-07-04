@@ -5,7 +5,6 @@ import { Check, Zap, ArrowRight, ArrowLeft, Crown, Sparkles, X, CheckCircle2, Al
 import { InlineSpinner } from '@/components/ui/LoadingStates';
 import { motion, AnimatePresence } from 'framer-motion';
 
-
 function Toast({ toasts, removeToast }) {
   return (
     <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
@@ -63,7 +62,6 @@ function useToast() {
   return { toasts, addToast, removeToast };
 }
 
-
 const MENU_ITEMS = [
   { id: 'dashboard', label: 'Meetings', icon: Video, path: '/dashboard' },
   { id: 'board', label: 'Project Board', icon: LayoutDashboard, path: '/board' },
@@ -88,7 +86,6 @@ const PRO_FEATURES = [
   'Up to 500 participants',
   'Unlimited Workspaces',
 ];
-
 
 export default function Pricing() {
   const { user } = useAuthStore();
@@ -134,8 +131,6 @@ export default function Pricing() {
         image: '/logo.png',
         order_id: orderId,
 
-        
-        
         config: {
           display: {
             blocks: {

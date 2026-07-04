@@ -45,7 +45,7 @@ const login = async (req, res, next) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000 
     });
 
     return sendSuccess(res, 200, 'Logged in successfully.', { accessToken, user });
@@ -80,7 +80,7 @@ const verifyOtp = async (req, res, next) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000 
     });
 
     return sendSuccess(res, 200, 'Code verified successfully.', { accessToken: tokens.accessToken, user });
@@ -114,7 +114,7 @@ const refresh = async (req, res, next) => {
 
 const me = async (req, res, next) => {
   try {
-    // req.user is set by auth middleware
+    
     return sendSuccess(res, 200, 'User profile fetched successfully', req.user);
   } catch (error) {
     next(error);
