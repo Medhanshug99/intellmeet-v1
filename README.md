@@ -1,41 +1,122 @@
 # IntellMeet
 
-IntellMeet is an enterprise meeting and collaboration platform that integrates real-time video conferencing, live chat, team workspaces, and AI-driven meeting intelligence. It is designed to capture meeting context, extract actionable tasks, and manage team productivity in a single ecosystem.
+Most teams finish a meeting and immediately lose track of what was decided. Notes are incomplete, action items get buried in chat, and the follow-up work that should start the next morning ends up starting a week later, if at all.
 
-## Core Features
+IntellMeet is built to fix that loop. It is a real-time video conferencing and team collaboration platform that actually captures what happens in a meeting and turns it into work. Live video, team chat, AI-generated summaries, extracted action items, and a workspace to manage the follow-up are all in one place.
 
-- **Authentication & Workspaces:** Secure JWT-based authentication (supporting both password and email OTP). Users can create and manage isolated team workspaces with role-based access control.
-- **Real-Time Video Collaboration:** High-definition, low-latency video and audio powered by WebRTC (via LiveKit). Includes screen sharing, participant list management, live text chat, and host controls (e.g., mute all).
-- **AI Meeting Intelligence:** Integrates with Llama 3 (via Groq) to automatically process meeting transcripts when a room closes. It generates structured meeting overviews, key decisions, blockers, and candidate action items.
-- **Post-Meeting Execution:** Generated tasks and summaries are saved to the workspace dashboard for follow-up and accountability.
-- **Live IntellBot:** An in-meeting AI assistant capable of answering questions based on the live context of the ongoing meeting.
+---
 
-## Tech Stack
+## What it does
 
-- **Frontend:** React 19, Vite, Tailwind CSS, Zustand (State Management), Framer Motion, LiveKit Components.
-- **Backend:** Node.js, Express, MongoDB (via Mongoose), Socket.io (for real-time signaling and chat outside WebRTC), JWT, bcrypt.
-- **AI & Integrations:** Groq (Llama 3 API) for LLM tasks, Resend/Nodemailer for transactional emails.
+When a meeting ends, IntellMeet's AI pipeline picks up the transcript and produces a structured summary: an overview, key decisions made, blockers raised, and a list of tasks with suggested owners. Those tasks land directly in the workspace dashboard so the meeting output doesn't have to be re-typed somewhere else.
 
-## Getting Started
+During the meeting, participants get a live side panel with chat, a participant list, and IntellBot — an in-room AI assistant that can answer questions about what was discussed without interrupting the session.
+
+**Core capabilities:**
+
+- Password and email OTP authentication with secure JWT sessions
+- Team workspaces with role-based access (host vs. participant)
+- High-definition, low-latency video and audio via WebRTC (LiveKit)
+- Screen sharing, participant controls, and host mute-all
+- Real-time text chat alongside the video stream
+- One-click invite link to bring others into a live room
+- Live transcription and AI post-meeting summary (Llama 3 via Groq)
+- Task creation from AI output, visible in the workspace dashboard
+- Live in-meeting bot that answers contextual questions
+
+---
+
+## Stack
+
+**Frontend:** React 19, Vite, Tailwind CSS, Zustand, Framer Motion, LiveKit Components React
+
+**Backend:** Node.js, Express, MongoDB with Mongoose, Socket.io, JWT, bcrypt
+
+**AI:** Groq API (Llama 3-70b for meeting analysis, Llama 3-8b for live bot)
+
+**Video:** LiveKit Cloud — WebRTC-based SFU for reliable multi-participant media
+
+**Email:** Resend / Nodemailer for transactional OTP delivery
+
+**Payments:** Razorpay (test mode by default)
+
+---
+
+## Running locally
 
 ### Prerequisites
-- Node.js (v18+)
-- MongoDB connection string
-- LiveKit Server/Cloud credentials
-- Groq API Key
+- Node.js v18 or later
+- A MongoDB connection string (Atlas free tier works fine)
+- LiveKit Cloud credentials (free developer account)
+- A Groq API key (free tier, no card required)
+- SMTP credentials or a Resend API key for OTP emails
 
-### Backend Setup
-1. Navigate to the \`backend\` directory.
-2. Install dependencies: \`npm install\`
-3. Create a \`.env\` file based on the environment variables needed (MongoDB URI, JWT secrets, LiveKit keys, Groq API key, SMTP credentials).
-4. Start the server: \`npm run dev\`
+### Backend
 
-### Frontend Setup
-1. Navigate to the \`frontend\` directory.
-2. Install dependencies: \`npm install\`
-3. Create a \`.env\` file for your Vite environment variables (API URL, LiveKit URL).
-4. Start the development server: \`npm run dev\`
+```bash
+cd backend
+npm install
+```
 
-## Architecture Notes
+Create a `.env` file in the `backend` directory. Required variables:
 
-The application uses a separated modular architecture. The backend isolates business logic into Services, handled by route-specific Controllers, and verified by middleware for authentication and request validation. Background jobs and third-party AI requests use safe fallbacks to ensure the primary video and API services are not blocked during high load or external provider outages.
+```
+PORT=5005
+MONGO_URI=your_mongodb_connection_string
+JWT_ACCESS_SECRET=any_long_random_string
+JWT_REFRESH_SECRET=another_long_random_string
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_api_secret
+OPENAI_API_KEY=your_groq_api_key
+RESEND_API_KEY=your_resend_key
+SMTP_USER=your_gmail
+SMTP_PASS=your_gmail_app_password
+CORS_ORIGIN=http://localhost:3005
+```
+
+```bash
+npm run dev
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+```
+
+Create a `.env` file in the `frontend` directory:
+
+```
+VITE_API_URL=http://localhost:5005/api/v1
+VITE_LIVEKIT_URL=wss://your-project.livekit.cloud
+```
+
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:3005`.
+
+---
+
+## Architecture
+
+The backend is structured around a strict separation of concerns. Routes delegate to Controllers, which call into Services where the actual business logic lives. Auth and request validation run as middleware before any handler is reached.
+
+AI processing is asynchronous. When a meeting ends, the transcript is sent to Groq in a background job so the primary API and WebSocket connections are never blocked waiting on a third-party response. If the AI service is unavailable or the API key is missing, the system gracefully skips the summary step rather than erroring out.
+
+Redis is used for token blacklisting and background job queuing. The app runs without it if `REDIS_URL` is not set — background processing falls back to synchronous mode and the core meeting and auth flows continue normally.
+
+WebSocket events (chat, participant presence, signaling) run through Socket.io. Media streams (video and audio) are handled entirely by LiveKit's WebRTC infrastructure, separate from the main server.
+
+---
+
+## Deployment
+
+The backend requires persistent WebSocket connections, so serverless hosting does not work for it. Recommended free setup with no sleep limits: backend on **Koyeb** (free eco instance, always-on), frontend on **Vercel** (free static hosting with global CDN).
+
+Set `CORS_ORIGIN` in your backend environment to the exact Vercel URL once you have it.
