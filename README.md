@@ -1,55 +1,101 @@
 # IntellMeet
 
-Most teams finish a meeting and immediately lose track of what was decided. Notes are incomplete, action items get buried in chat, and the follow-up work that should start the next morning ends up starting a week later, if at all.
+Meetings create decisions. Most tools stop there. IntellMeet continues.
 
-IntellMeet is built to fix that loop. It is a real-time video conferencing and team collaboration platform that actually captures what happens in a meeting and turns it into work. Live video, team chat, AI-generated summaries, extracted action items, and a workspace to manage the follow-up are all in one place.
+It is a real-time enterprise collaboration platform built around one premise: the gap between a meeting ending and work actually starting should not exist. The platform handles live video, captures the transcript, extracts decisions and action items using AI, and lands all of it directly into a team workspace where tasks can be tracked to completion — without switching tools.
 
 ---
 
-## What it does
+## The Problem it Solves
 
-When a meeting ends, IntellMeet's AI pipeline picks up the transcript and produces a structured summary: an overview, key decisions made, blockers raised, and a list of tasks with suggested owners. Those tasks land directly in the workspace dashboard so the meeting output doesn't have to be re-typed somewhere else.
+Most teams have this problem. A meeting ends, people go back to Slack, someone pastes rough notes, action items get buried, and three days later a manager is asking who was supposed to do what. The follow-up work that should start immediately starts late, if at all.
 
-During the meeting, participants get a live side panel with chat, a participant list, and IntellBot — an in-room AI assistant that can answer questions about what was discussed without interrupting the session.
+The fragmentation is the root cause. Video lives in one place, notes in another, tasks in a third. Context gets copied across systems manually and degrades at every step.
 
-**Core capabilities:**
+IntellMeet collapses the loop: **Meet → Transcript → AI Summary → Action Items → Task Board**. No copying, no manual write-ups, no lost decisions.
 
-- Password and email OTP authentication with secure JWT sessions
-- Team workspaces with role-based access (host vs. participant)
-- High-definition, low-latency video and audio via WebRTC (LiveKit)
-- Screen sharing, participant controls, and host mute-all
-- Real-time text chat alongside the video stream
-- One-click invite link to bring others into a live room
-- Live transcription and AI post-meeting summary (Llama 3 via Groq)
-- Task creation from AI output, visible in the workspace dashboard
-- Live in-meeting bot that answers contextual questions
+---
+
+## How It Works
+
+After a meeting ends, the platform's AI pipeline processes the full transcript and generates a structured output:
+
+- **Overview** — a 2-3 sentence summary of what the meeting was about
+- **Key Decisions** — what was actually decided, in bullet form
+- **Blockers** — issues raised that need to be resolved
+- **Action Items** — tasks with suggested owners pulled directly from the conversation
+
+The host reviews the draft, makes any corrections, and publishes it. From that point, the summary and tasks are visible to every workspace member. The meeting becomes a traceable, searchable work artifact instead of a memory.
+
+During the meeting, a live side panel gives participants a persistent chat, a participant list, and IntellBot — an in-room AI assistant that can answer questions about what has been said so far without interrupting the session.
+
+---
+
+## Feature Overview
+
+**Authentication**
+- Email OTP (one-time password) and password-based login
+- JWT access tokens (15-minute expiry) with rotating refresh tokens (7 days)
+- OTP rate limiting: 5 failed attempts triggers a 15-minute lockout per email
+- Role-based access control enforced at the middleware layer — Guest, Member, Host, Admin
+
+**Workspaces**
+- Each workspace is an isolated environment with its own members, meetings, and task board
+- Users can belong to multiple workspaces
+- Hosts manage participants; Admins manage workspace membership and roles
+
+**Video and Audio**
+- HD, low-latency video and audio via WebRTC, using LiveKit's SFU architecture
+- SFU (Selective Forwarding Unit) means streams scale linearly — no mesh overhead
+- Screen share, microphone, and camera controls with single-click toggling
+- Host controls: mute all, remove participant
+- Pre-join lobby for camera and mic check before entering a room
+- One-click invite link generation from the Participants panel
+
+**AI Pipeline**
+- Transcript tied to a workspace and meeting ID for full auditability
+- Llama 3 (via Groq) generates structured JSON output: overview, decisions, blockers, tasks
+- Retry queue with exponential backoff — if the AI call fails, it retries without blocking the API
+- Fallback: if the AI pipeline is unavailable, the system skips summarization gracefully and logs the failure. The meeting continues unaffected.
+- Summaries stay in Draft state until the Host reviews and publishes them
+- Non-host members see "Summary is under review" until it is published
+
+**Task Management**
+- AI-extracted action items become tasks with assignees on the workspace board
+- Task status: To Do → In Progress → Done
+- Tasks track their source meeting for traceability
+- AI-sourced and manually-created tasks are both supported
+
+**Security**
+- All API routes protected by JWT middleware
+- RBAC enforced server-side — role checks are not trust-the-frontend
+- Helmet.js for HTTP security headers (XSS protection, HSTS, Content-Security-Policy)
+- CORS restricted to known frontend origins
+- WebSocket connections require a valid JWT on handshake
 
 ---
 
 ## Stack
 
-**Frontend:** React 19, Vite, Tailwind CSS, Zustand, Framer Motion, LiveKit Components React
-
-**Backend:** Node.js, Express, MongoDB with Mongoose, Socket.io, JWT, bcrypt
-
-**AI:** Groq API (Llama 3-70b for meeting analysis, Llama 3-8b for live bot)
-
-**Video:** LiveKit Cloud — WebRTC-based SFU for reliable multi-participant media
-
-**Email:** Resend / Nodemailer for transactional OTP delivery
-
-**Payments:** Razorpay (test mode by default)
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite, Tailwind CSS, Zustand, Framer Motion |
+| Backend | Node.js, Express, MongoDB (Mongoose), Socket.io |
+| Video / WebRTC | LiveKit Cloud (SFU) |
+| AI | Groq API — Llama 3-70b (meeting analysis), Llama 3-8b (live bot) |
+| Auth | JWT, bcrypt, custom OTP via Resend / Nodemailer |
+| Background Jobs | BullMQ (Redis queue) — graceful fallback to sync if Redis is absent |
 
 ---
 
-## Running locally
+## Running Locally
 
 ### Prerequisites
 - Node.js v18 or later
-- A MongoDB connection string (Atlas free tier works fine)
-- LiveKit Cloud credentials (free developer account)
-- A Groq API key (free tier, no card required)
-- SMTP credentials or a Resend API key for OTP emails
+- MongoDB connection string (Atlas free tier works)
+- LiveKit Cloud credentials
+- Groq API key (free, no credit card required)
+- SMTP credentials or Resend API key for OTP email delivery
 
 ### Backend
 
@@ -58,22 +104,27 @@ cd backend
 npm install
 ```
 
-Create a `.env` file in the `backend` directory. Required variables:
+Create a `.env` in the `backend/` directory with the following:
 
-```
+```env
 PORT=5005
 MONGO_URI=your_mongodb_connection_string
+
 JWT_ACCESS_SECRET=any_long_random_string
 JWT_REFRESH_SECRET=another_long_random_string
 JWT_ACCESS_EXPIRATION=15m
 JWT_REFRESH_EXPIRATION=7d
+
 LIVEKIT_URL=wss://your-project.livekit.cloud
 LIVEKIT_API_KEY=your_livekit_api_key
 LIVEKIT_API_SECRET=your_livekit_api_secret
+
 OPENAI_API_KEY=your_groq_api_key
-RESEND_API_KEY=your_resend_key
-SMTP_USER=your_gmail
+
+RESEND_API_KEY=your_resend_api_key
+SMTP_USER=your_gmail_address
 SMTP_PASS=your_gmail_app_password
+
 CORS_ORIGIN=http://localhost:3005
 ```
 
@@ -88,9 +139,9 @@ cd frontend
 npm install
 ```
 
-Create a `.env` file in the `frontend` directory:
+Create a `.env` in the `frontend/` directory:
 
-```
+```env
 VITE_API_URL=http://localhost:5005/api/v1
 VITE_LIVEKIT_URL=wss://your-project.livekit.cloud
 ```
@@ -99,24 +150,32 @@ VITE_LIVEKIT_URL=wss://your-project.livekit.cloud
 npm run dev
 ```
 
-The app will be available at `http://localhost:3005`.
+App runs at `http://localhost:3005`.
 
 ---
 
 ## Architecture
 
-The backend is structured around a strict separation of concerns. Routes delegate to Controllers, which call into Services where the actual business logic lives. Auth and request validation run as middleware before any handler is reached.
+Business logic lives entirely in the service layer. Controllers handle request/response; services own the logic. Middleware handles auth validation and request validation before any handler is reached. This separation makes each layer independently testable and replaceable.
 
-AI processing is asynchronous. When a meeting ends, the transcript is sent to Groq in a background job so the primary API and WebSocket connections are never blocked waiting on a third-party response. If the AI service is unavailable or the API key is missing, the system gracefully skips the summary step rather than erroring out.
+AI processing is async by design. When a meeting ends, the transcript is queued via BullMQ and processed in the background. The API responds immediately. If Redis is not available (e.g., local dev without Docker), the system falls back to synchronous processing — no configuration change required.
 
-Redis is used for token blacklisting and background job queuing. The app runs without it if `REDIS_URL` is not set — background processing falls back to synchronous mode and the core meeting and auth flows continue normally.
+WebSocket events (chat, participant presence, signaling) run through Socket.io on the main server. Media streams (video and audio) are offloaded entirely to LiveKit's infrastructure and never touch the application server.
 
-WebSocket events (chat, participant presence, signaling) run through Socket.io. Media streams (video and audio) are handled entirely by LiveKit's WebRTC infrastructure, separate from the main server.
+Performance targets from the original specification:
+- API response time: under 200ms at p95 for non-AI endpoints
+- WebSocket latency: under 100ms for chat and presence events
+- AI summary generation: under 2 minutes for a 60-minute meeting
+- Video join time: under 3 seconds from "Join Now" to first frame
 
 ---
 
 ## Deployment
 
-The backend requires persistent WebSocket connections, so serverless hosting does not work for it. Recommended free setup with no sleep limits: backend on **Koyeb** (free eco instance, always-on), frontend on **Vercel** (free static hosting with global CDN).
+The backend requires persistent WebSocket connections, so serverless hosting (Vercel, Netlify Functions) does not work for it.
 
-Set `CORS_ORIGIN` in your backend environment to the exact Vercel URL once you have it.
+Recommended free setup with no sleep limits:
+- **Backend**: Koyeb free eco instance — always-on, supports WebSockets
+- **Frontend**: Vercel — static hosting with global CDN
+
+After deploying both, set `CORS_ORIGIN` in the backend environment to the exact Vercel URL.
