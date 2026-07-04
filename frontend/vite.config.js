@@ -23,6 +23,9 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'logo.png'],
+      workbox: {
+        maximumFileSizeToCacheInBytes: 5000000, // 5 MB
+      },
       manifest: {
         name: 'IntellMeet',
         short_name: 'IntellMeet',
