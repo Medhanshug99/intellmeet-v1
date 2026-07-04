@@ -1,0 +1,7 @@
+node_modules/
+.env
+.DS_Store
+prd/
+IntellMeet_Advanced_PRD_r1.txt
+IntellMeet_Advanced_PRD_r2.txt
+*.log

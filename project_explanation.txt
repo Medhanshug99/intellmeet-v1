@@ -1,0 +1,108 @@
+================================================================================
+INTELLMEET - MASTER TECHNICAL EXPLANATION & REVISION GUIDE (DEEP DIVE EDITION)
+================================================================================
+
+This document is your comprehensive encyclopedia for the entire codebase. It covers everything from high-level architecture down to the exact cryptographic methods used for payments and custom OTP flows. Memorize this to answer any question about how the app was built.
+
+--------------------------------------------------------------------------------
+LEVEL 1: EASY (High-Level Architecture & Choices)
+--------------------------------------------------------------------------------
+
+Q1: What is the exact Tech Stack used for this project?
+A: It is a modern full-stack JavaScript application built with the following:
+- FRONTEND: React 19, Vite (for fast bundling), Tailwind CSS (styling), Shadcn UI & Radix UI (accessible components), Zustand (state management), React Router DOM v7 (routing), Framer Motion (animations), Lucide React (icons), and LiveKit Components React (video UI).
+- BACKEND: Node.js, Express.js, Prisma ORM, LiveKit Server SDK, Razorpay Node SDK, and OpenAI SDK.
+- DATABASE: PostgreSQL hosted on Supabase.
+- INFRASTRUCTURE: LiveKit Cloud (for WebRTC SFU video hosting) and Supabase (for Auth and Database).
+
+Q2: What is the basic architecture of the app?
+A: It uses a standard Client-Server Architecture. The React frontend is a Single Page Application (SPA) that communicates with the Express backend via RESTful APIs over HTTP/HTTPS. The backend acts as the central source of truth, talking to the PostgreSQL database, the OpenAI API, Razorpay, and the LiveKit server.
+
+Q3: What are the main features of the app?
+A: 
+1. Secure Authentication (Custom OTP Flow + Supabase).
+2. Real-time Video Conferencing with screen sharing and chat.
+3. AI-Powered Meeting Summaries and Action Item extraction.
+4. Workspace and Task Management.
+5. Premium Subscription Tiers via Razorpay.
+
+Q4: Why Tailwind CSS over standard CSS or Bootstrap?
+A: Tailwind is a "utility-first" framework. It allowed me to build the UI extremely quickly without ever leaving the HTML/JSX. It automatically purges unused CSS in production, making the final bundle tiny. It also made implementing dark mode and glassmorphism (backdrop-blur) trivial compared to standard CSS.
+
+--------------------------------------------------------------------------------
+LEVEL 2: MEDIUM (Implementation Details & Workflows)
+--------------------------------------------------------------------------------
+
+Q1: How do you handle State Management across the frontend?
+A: I chose Zustand instead of Redux or React Context. Redux has too much boilerplate, and React Context causes unnecessary re-renders. Zustand allows me to create modular, slice-based stores (e.g., `useAuthStore`, `useMeetingStore`, `useTaskStore`). These stores encapsulate both the data and the API calls (actions). Components simply subscribe to the specific variables they need from the store.
+
+Q2: How is routing handled, specifically for private pages?
+A: I use `react-router-dom`. To prevent unauthenticated users from seeing the Dashboard, I created a wrapper component (usually called `<RequireAuth>` or handled in the layout). This component checks the `isAuthenticated` flag in the Zustand `authStore`. If the user is logged in, it renders the child components; if not, it forces a redirect (Navigate) to the Login page.
+
+Q3: Walk me through the Razorpay payment flow step-by-step.
+A: 
+1. The user clicks "Upgrade to Pro" in the Pricing UI.
+2. The frontend sends a POST request to `/api/v1/payments/create-order`.
+3. The Node.js backend uses the Razorpay SDK to create an Order and returns the `order_id` to the frontend.
+4. The frontend initializes the Razorpay Checkout widget using the `order_id` and my public `VITE_RAZORPAY_KEY_ID`.
+5. The user enters their payment details and pays.
+6. Razorpay returns three things to the frontend: `razorpay_payment_id`, `razorpay_order_id`, and `razorpay_signature`.
+7. The frontend sends these three items back to my backend (`/api/v1/payments/verify`).
+8. The backend cryptographically verifies the signature (see Level 3).
+9. If valid, the backend uses Prisma to update the User's role to 'PRO' in the database.
+
+Q4: How does the AI summarize the meetings? (Deep Dive)
+A: The backend uses the OpenAI Node.js SDK (`gpt-3.5-turbo` or `gpt-4`). When a meeting ends, the transcripts are aggregated into a single block of text and sent to the AI service. 
+- Prompt Engineering: I crafted a highly specific "System Prompt" instructing the AI to act as a meeting assistant. 
+- JSON Structure: Crucially, I pass `response_format: { type: "json_object" }` in the API call. This forces OpenAI to return the response as a strict JSON string containing a `summary` string and a `tasks` array. 
+- Processing: The backend calls `JSON.parse()` on the response and directly saves the summary and tasks into the PostgreSQL database via Prisma. 
+
+Q5: How does the video call UI actually render participants?
+A: The frontend uses `@livekit/components-react`. I wrap the meeting room in a `<LiveKitRoom>` context provider, passing in the WebSocket URL and the Access Token generated by the backend. 
+Inside the room, I use LiveKit hooks like `useTracks()` to get all active video and audio tracks (both local and remote). I then map over these tracks and render them using the `<VideoTrack>` and `<AudioTrack>` components provided by LiveKit.
+
+--------------------------------------------------------------------------------
+LEVEL 3: HARD (Security, WebRTC, Database Relations, & Deep Dives)
+--------------------------------------------------------------------------------
+
+Q1: Exactly how does the Custom OTP (One-Time Password) Login Flow work?
+A: I built a hybrid authentication system that combines custom database logic with Supabase's secure sessions. 
+1. The user enters their email. My Node backend generates a random 6-digit number, hashes it (or stores it securely), and saves it to my Prisma `otpToken` table with a 10-minute expiry.
+2. My backend emails the user this 6-digit code.
+3. The user enters the code on the frontend. The backend verifies the code against the `otpToken` table.
+4. If valid, the backend uses the Supabase Admin SDK (`supabaseAdmin.auth.admin.generateLink`) to silently generate a `magiclink` token for that email. 
+5. The backend returns this `hashed_token` to the frontend.
+6. The frontend calls `supabase.auth.verifyOtp({ token_hash: hashedToken, type: 'magiclink' })` to establish the actual JWT session in the browser.
+This gives me full control over the UI/UX of a simple 6-digit code, while still relying on Supabase to issue and manage the incredibly secure JWTs.
+
+Q2: WebRTC is usually Peer-to-Peer (P2P). How does LiveKit handle video scaling?
+A: Standard WebRTC is P2P (Mesh architecture). In a 5-person meeting, your client has to encode and upload its video 4 separate times, crushing user CPU and bandwidth (O(n^2) scaling). 
+LiveKit uses an SFU (Selective Forwarding Unit) architecture. Your client encodes and uploads its video exactly ONCE to the LiveKit server. The LiveKit server then acts as a central router, forwarding your video stream to the other 4 participants (O(n) scaling). It also supports Simulcast, automatically downgrading video streams for users with bad internet without affecting users with fast internet.
+
+Q3: How do Video/Audio Permissions work in LiveKit?
+A: Security is enforced via JWT (JSON Web Tokens) generated by the `livekit-server-sdk` on my Node backend. When generating the token, I assign specific "Video Grants".
+For example, I attach `{ roomJoin: true, room: 'meeting-123', canPublish: true, canSubscribe: true }`. If I want a user to be view-only (like a webinar attendee), I simply set `canPublish: false` when generating their token. Even if they hack their frontend code to turn on their camera, the LiveKit server will strictly reject their stream.
+
+Q4: Explain the cryptographic security behind the Razorpay Verification.
+A: We cannot trust the frontend to simply say "The user paid." To prevent spoofing, Razorpay generates a cryptographic signature using HMAC (Hash-Based Message Authentication Code) with the SHA-256 algorithm.
+On my Node.js backend, I recreate this hash. I take the `razorpay_order_id` and `razorpay_payment_id`, join them with a pipe (`|`), and hash them using the `crypto` module and my private `RAZORPAY_KEY_SECRET`. 
+If my generated hash exactly matches the `razorpay_signature` sent by the client, the payment is mathematically proven to be legitimate. Because the secret key is only on my server, it is impossible for a hacker to forge this signature.
+
+Q5: How is the Database Schema structured in Prisma?
+A: The schema relies on powerful relational mapping:
+- **User**: Has a `role` enum (USER, PRO, ADMIN). Has one-to-many relations to Workspaces, Meetings (as host), and Tasks.
+- **Workspace**: Has a many-to-many relation with Users (members), and a one-to-many relation to Meetings.
+- **Meeting**: Belongs to a Workspace and a Host (User). Has a one-to-many relation to Tasks (action items generated during the meeting).
+- **Task**: Belongs to a User, a Meeting, and a Workspace. Has status enums (TODO, IN_PROGRESS, DONE).
+Prisma handles the foreign keys and indexing behind the scenes, ensuring data integrity (e.g., cascade deletes).
+
+Q6: Why use two different connection URLs for Supabase (DATABASE_URL and DIRECT_URL)?
+A: Supabase provides a pgBouncer connection pooler (port 6543/5432 with ?pgbouncer=true). 
+- `DATABASE_URL` connects through the pooler, which manages and recycles connections efficiently for standard API queries (preventing connection exhaustion under heavy load).
+- `DIRECT_URL` bypasses the pooler. Prisma specifically requires a direct connection to run database migrations (`prisma migrate`) because migrations alter the schema and require a persistent, un-pooled lock.
+
+Q7: Explain the custom Express Middleware logic (Security & Error Handling).
+A: I built a robust middleware pipeline:
+1. **Authentication (`protect`)**: Extracts the `Bearer <token>` from headers. Uses the Supabase Admin SDK to verify the JWT validity. It then looks up the User in the Prisma database and attaches it to `req.user`. If anything fails, it throws a 401 Unauthorized error.
+2. **Authorization (`authorize`)**: A closure middleware (e.g., `authorize('PRO', 'ADMIN')`) that checks if `req.user.role` is in the allowed array. If not, it throws a 403 Forbidden. This strictly enforces paywalls at the API level.
+3. **Global Error Handler**: Instead of writing `try/catch` and sending `res.status(500)` in every single controller, controllers pass errors to `next(error)`. My global `error.middleware.js` intercepts all errors. If it's a custom `AppError`, it sends the predefined status code. If it's an unknown error, it logs it and sends a generic 500 error to the client so stack traces aren't leaked in production.

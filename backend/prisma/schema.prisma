@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")   // Pooled via PgBouncer — used at runtime
+  directUrl  = env("DIRECT_URL")     // Direct connection — used for prisma db push/migrate
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  role      String   @default("Member") // 'Admin' or 'Member'
+  avatarUrl String   @default("default.jpg")
+  isPremium Boolean  @default(false)
+  razorpayCustomerId String?
+  razorpaySubscriptionId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedWorkspaces Workspace[] @relation("WorkspaceOwner")
+  workspaces      Workspace[] @relation("WorkspaceMembers")
+
+  hostedMeetings Meeting[] @relation("MeetingHost")
+  meetings       Meeting[] @relation("MeetingParticipants")
+
+  tasks           Task[]    @relation("TaskOwner")
+}
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  owner     User     @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   User[]   @relation("WorkspaceMembers")
+  meetings  Meeting[]
+  tasks     Task[]
+}
+
+model Meeting {
+  id                 String    @id @default(uuid())
+  title              String
+  description        String?
+  workspaceId        String
+  workspace          Workspace @relation(fields: [workspaceId], references: [id])
+  hostId             String
+  host               User      @relation("MeetingHost", fields: [hostId], references: [id])
+  status             String    @default("Scheduled") // 'Scheduled', 'Live', 'Completed', 'Cancelled'
+  scheduledStartTime DateTime
+  actualStartTime    DateTime?
+  actualEndTime      DateTime?
+  recordingUrl       String?
+  transcript         Json?
+  summary            String?
+  overview           String?
+  keyDecisions       Json?     // Array of strings
+  blockers           Json?     // Array of strings
+  aiSummaryStatus    String    @default("Processing") // 'Processing', 'Draft', 'Published', 'Failed'
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  participants User[] @relation("MeetingParticipants")
+  tasks        Task[]
+
+  @@index([workspaceId])
+  @@index([hostId])
+}
+
+model OtpToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String
+  type      String   // 'signup' | 'login'
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email, type])
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  content     String
+  meetingId   String?
+  meeting     Meeting?   @relation(fields: [meetingId], references: [id])
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  ownerId     String?
+  owner       User?      @relation("TaskOwner", fields: [ownerId], references: [id])
+  status      String     @default("Todo") // 'Todo', 'InProgress', 'Done'
+  source      String     @default("Manual") // 'Manual', 'AI'
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([workspaceId])
+  @@index([ownerId])
+  @@index([status])
+}

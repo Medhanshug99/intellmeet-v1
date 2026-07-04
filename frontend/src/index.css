@@ -1,0 +1,138 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ── LIGHT MODE ────────────────────────────── */
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 180 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 180 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 180 10% 10%;
+
+    /* Deep Teal — confident, grounded, unique */
+    --primary: 174 72% 34%;           /* #16a085 deep teal */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 174 30% 94%;
+    --secondary-foreground: 174 72% 22%;
+
+    --muted: 180 10% 95%;
+    --muted-foreground: 180 6% 44%;
+
+    /* Warm Amber accent for highlights */
+    --accent: 38 92% 94%;
+    --accent-foreground: 38 85% 32%;
+
+    --destructive: 0 84% 58%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 180 10% 89%;
+    --input: 180 10% 89%;
+    --ring: 174 72% 34%;
+    --radius: 0.5rem;
+  }
+
+  /* ── DARK MODE ─────────────────────────────── */
+  .dark {
+    --background: 196 25% 6%;         /* very dark teal-slate, not plain black */
+    --foreground: 180 15% 93%;
+
+    --card: 196 22% 9%;
+    --card-foreground: 180 15% 93%;
+
+    --popover: 196 22% 9%;
+    --popover-foreground: 180 15% 93%;
+
+    /* Lighter teal for dark backgrounds */
+    --primary: 174 65% 48%;           /* #22c4a3 — bright teal */
+    --primary-foreground: 196 30% 6%;
+
+    --secondary: 196 20% 16%;
+    --secondary-foreground: 180 15% 80%;
+
+    --muted: 196 20% 13%;
+    --muted-foreground: 180 10% 52%;
+
+    /* Amber in dark mode — warm glow for active states */
+    --accent: 38 60% 18%;
+    --accent-foreground: 38 85% 70%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 196 18% 16%;
+    --input: 196 18% 14%;
+    --ring: 174 65% 48%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Geist Variable', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
+  }
+}
+
+@layer utilities {
+  /* Cards */
+  .saas-card {
+    @apply bg-card border border-border rounded-xl transition-all duration-200;
+  }
+  .saas-card:hover {
+    @apply border-border/80;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+  .dark .saas-card:hover {
+    @apply border-border;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Inputs */
+  .premium-input {
+    @apply h-11 w-full rounded-lg border border-input bg-transparent px-4 py-2 text-sm text-foreground
+           placeholder:text-muted-foreground shadow-sm
+           focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring
+           disabled:cursor-not-allowed disabled:opacity-50
+           transition-all duration-150;
+  }
+
+  /* Primary action button */
+  .premium-button {
+    @apply inline-flex items-center justify-center rounded-lg text-sm font-medium
+           bg-primary text-white shadow-sm
+           hover:opacity-90 active:scale-[0.98]
+           h-11 px-5 py-2
+           transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* Scrollbars */
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 999px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "p1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "kill_ports.js",
+  "dependencies": {
+    "decomment": "^0.9.5",
+    "esprima": "^4.0.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
