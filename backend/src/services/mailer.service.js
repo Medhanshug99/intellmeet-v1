@@ -1,16 +1,22 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 
 const sendOtpEmail = async (to, otp, type) => {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
 
-  if (!apiKey) {
+  if (!user || !pass) {
     console.log(`\n[MAILER DEV MODE] OTP for ${to} (${type}): ${otp}\n`);
-    console.log('To send real emails, set RESEND_API_KEY in your .env file.\n');
+    console.log('To send real emails, set SMTP_USER and SMTP_PASS in your .env file.\n');
     return { success: true, dev: true };
   }
 
-  const resend = new Resend(apiKey);
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: user,
+      pass: pass,
+    },
+  });
 
   const subject =
     type === 'signup'
@@ -89,21 +95,16 @@ const sendOtpEmail = async (to, otp, type) => {
   `.trim();
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: `"IntellMeet" <${fromEmail}>`,
+    const info = await transporter.sendMail({
+      from: `"IntellMeet" <${user}>`,
       to: to,
       subject: subject,
       html: html,
     });
-
-    if (error) {
-      console.error('[Mailer] Resend API error:', error);
-      throw new Error('Failed to send email');
-    }
-
-    return { success: true, id: data.id };
+    console.log('[Mailer] Email sent:', info.messageId);
+    return { success: true, id: info.messageId };
   } catch (error) {
-    console.error('[Mailer] Error:', error);
+    console.error('[Mailer] Nodemailer error:', error.message);
     throw new Error('Failed to send email');
   }
 };
