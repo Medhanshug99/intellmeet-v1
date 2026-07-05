@@ -1,25 +1,5 @@
-const nodemailer = require('nodemailer');
-
 const sendOtpEmail = async (to, otp, type) => {
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const smtpHost = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
-  const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-
-  if (!smtpUser || !smtpPass) {
-    console.log(`\n[MAILER DEV MODE] OTP for ${to} (${type}): ${otp}\n`);
-    return { success: true, dev: true };
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: smtpHost,
-    port: smtpPort,
-    secure: smtpPort === 465, // true for 465, false for other ports
-    auth: {
-      user: smtpUser,
-      pass: smtpPass,
-    },
-  });
+  const GAS_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbzX-YaIBO0XE5s8jQRuN0tqMnuhhvbFK3lJ28-LDURJpE6ORHL4n4Tw7Bu-4nwvP6u0EQ/exec';
 
   const subject =
     type === 'signup'
@@ -46,7 +26,7 @@ const sendOtpEmail = async (to, otp, type) => {
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;padding:40px 0;">
     <tr>
       <td align="center">
-        <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
+        <table width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
           <tr>
             <td style="padding:32px 40px 24px;border-bottom:1px solid #e5e7eb;text-align:center;">
               <p style="margin:0;font-size:24px;font-weight:800;color:#6366f1;letter-spacing:-0.5px;">IntellMeet</p>
@@ -77,16 +57,28 @@ const sendOtpEmail = async (to, otp, type) => {
 </html>`.trim();
 
   try {
-    const info = await transporter.sendMail({
-      from: `"IntellMeet" <${smtpUser}>`,
-      to: to,
-      subject: subject,
-      html: html,
+    const response = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: to,
+        subject: subject,
+        html: html
+      })
     });
-    console.log('[Mailer] Email sent:', info.messageId);
-    return { success: true, id: info.messageId };
+
+    const data = await response.json();
+    if (!data.success) {
+      console.error('[Mailer] GAS error:', data.error);
+      throw new Error('Failed to send email');
+    }
+
+    console.log('[Mailer] Email sent via Google Apps Script:', to);
+    return { success: true };
   } catch (error) {
-    console.error('[Mailer] SMTP error:', error.message);
+    console.error('[Mailer] Error:', error.message);
     throw new Error('Failed to send email');
   }
 };
