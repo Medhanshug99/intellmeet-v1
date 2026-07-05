@@ -1,5 +1,5 @@
 const sendOtpEmail = async (to, otp, type) => {
-  const GAS_URL = process.env.GOOGLE_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbymQiebT8g5d-rnzvh50B30wNXuDzvj67hheZrNnTUjoXWQp15cma-OeU9hHfmn-1Cn7Q/exec';
+  const GAS_URL = process.env.GOOGLE_SCRIPT_URL;
 
   const subject =
     type === 'signup'
