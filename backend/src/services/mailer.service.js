@@ -90,7 +90,7 @@ const sendOtpEmail = async (to, otp, type) => {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: \`"IntellMeet" <\${fromEmail}>\`,
+      from: `"IntellMeet" <${fromEmail}>`,
       to: to,
       subject: subject,
       html: html,
