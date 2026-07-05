@@ -1,4 +1,8 @@
-# IntellMeet
+# IntellMeet AI
+
+**Live Demo:** [https://intellmeet-v2-nu.vercel.app](https://intellmeet-v2-nu.vercel.app)
+
+## What is IntellMeet AI?
 
 Meetings create decisions. Most tools stop there. IntellMeet continues.
 
