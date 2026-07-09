@@ -43,6 +43,16 @@ export default function MeetingRoom() {
   const [hasJoined, setHasJoined] = useState(false);
   const [userName, setUserName] = useState(user?.name || user?.email?.split('@')[0] || '');
 
+  const isHost = Boolean(
+    user?.id && currentMeeting && (
+      currentMeeting.host?.id === user.id ||
+      currentMeeting.host === user.id ||
+      currentMeeting.hostId?.id === user.id ||
+      currentMeeting.hostId?._id === user.id ||
+      currentMeeting.hostId === user.id
+    )
+  );
+
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   
@@ -84,7 +94,6 @@ export default function MeetingRoom() {
     if (!hasJoined) return;
 
     socketRef.current = io(SOCKET_URL);
-    const isHostUser = currentMeeting?.host?.id === user?.id || currentMeeting?.host === user?.id || currentMeeting?.hostId === user?.id;
 
     const initConnection = async () => {
       try {
@@ -97,7 +106,7 @@ export default function MeetingRoom() {
       }
     };
 
-    if (isHostUser) {
+    if (isHost) {
       initConnection();
       socketRef.current.emit('host-joined', { meetingId });
     } else {
@@ -286,8 +295,6 @@ export default function MeetingRoom() {
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
   };
-
-  const isHost = currentMeeting?.host?.id === user?.id || currentMeeting?.host === user?.id || currentMeeting?.hostId === user?.id;
 
   const handleMuteAll = () => {
     if (socketRef.current) {
