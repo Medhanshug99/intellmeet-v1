@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import ErrorBoundary from './components/ErrorBoundary';
 import { FullPageLoader } from './components/ui/LoadingStates';
@@ -13,9 +13,10 @@ const Analytics = React.lazy(() => import('./pages/Analytics'));
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuthStore();
+  const location = useLocation();
   
   if (isLoading) return <FullPageLoader message="Authenticating..." />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   
   return children;
 };

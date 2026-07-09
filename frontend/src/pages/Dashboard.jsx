@@ -609,8 +609,8 @@ END:VCALENDAR`;
                     <input
                       value={joinCode}
                       onChange={e => setJoinCode(e.target.value)}
-                      placeholder="Enter a code or link"
-                      className="h-12 pl-11 pr-20 rounded-full border border-border bg-card text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all w-64"
+                      placeholder="Paste link or meeting ID"
+                      className="h-12 pl-11 pr-20 rounded-full border border-border bg-card text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all w-72"
                     />
                     <button
                       type="submit"

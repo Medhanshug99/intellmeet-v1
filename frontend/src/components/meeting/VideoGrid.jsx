@@ -5,7 +5,11 @@ import { MicOff, MonitorUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function VideoGrid({ isVideoOff, localReaction }) {
-  const participants = useParticipants();
+  const cameraTracks = useTracks(
+    [{ source: Track.Source.Camera, withPlaceholder: true }],
+    { onlySubscribed: false }
+  );
+  
   const screenShareTracks = useTracks(
     [{ source: Track.Source.ScreenShare, withPlaceholder: false }],
     { onlySubscribed: false }
@@ -62,7 +66,7 @@ export function VideoGrid({ isVideoOff, localReaction }) {
     }
   }, [localReaction]);
 
-  const totalParticipants = participants.length + screenShareTracks.length;
+  const totalParticipants = cameraTracks.length + screenShareTracks.length;
 
   let layoutClasses;
   if (totalParticipants <= 1) layoutClasses = 'grid-cols-1 grid-rows-1';
@@ -78,13 +82,13 @@ export function VideoGrid({ isVideoOff, localReaction }) {
   return (
     <motion.div layout className={`w-full h-full grid gap-3 ${layoutClasses} max-h-[calc(100vh-9rem)] overflow-y-auto custom-scrollbar`}>
       <AnimatePresence>
-        {participants.map((participant) => (
+        {cameraTracks.map((trackRef) => (
           <ParticipantTile 
-            key={participant.identity} 
-            participant={participant} 
+            key={trackRef.participant.identity} 
+            trackRef={trackRef} 
             localIdentity={localParticipant?.identity} 
             isVideoOff={isVideoOff}
-            reaction={activeReactions[participant.identity]}
+            reaction={activeReactions[trackRef.participant.identity]}
           />
         ))}
         {screenShareTracks.map((trackRef) => (
@@ -95,20 +99,13 @@ export function VideoGrid({ isVideoOff, localReaction }) {
   );
 }
 
-function ParticipantTile({ participant, localIdentity, isVideoOff, reaction }) {
+function ParticipantTile({ trackRef, localIdentity, isVideoOff, reaction }) {
+  const participant = trackRef.participant;
   const isLocal = localIdentity ? participant.identity === localIdentity : false;
   const isMuted = !participant.isMicrophoneEnabled;
   const name = participant.name || 'User';
 
-  const cameraPublication = participant.getTrackPublication(Track.Source.Camera);
-  const hasVideo = isLocal ? !isVideoOff : participant.isCameraEnabled;
-  
-  const trackRef = {
-    participant,
-    source: Track.Source.Camera,
-    publication: cameraPublication,
-    track: cameraPublication?.videoTrack
-  };
+  const hasVideo = isLocal ? !isVideoOff : !!trackRef.publication?.track;
 
   return (
     <motion.div
@@ -121,7 +118,7 @@ function ParticipantTile({ participant, localIdentity, isVideoOff, reaction }) {
         participant.isSpeaking ? 'border-primary ring-2 ring-primary/50' : 'border-white/10'
       }`}
     >
-      {!hasVideo || !trackRef.publication?.track ? (
+      {!hasVideo ? (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#1c1c20] to-[#0f0f11] relative overflow-hidden">
           <div className="absolute inset-0 bg-primary/5 blur-[100px] rounded-full transform scale-150" />
           <div className={`relative flex items-center justify-center h-20 w-20 md:h-32 md:w-32 rounded-full bg-gradient-to-br from-primary to-primary/50 text-3xl md:text-5xl font-bold text-primary-foreground shadow-2xl border border-white/10 transition-all duration-300 ${

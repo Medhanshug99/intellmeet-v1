@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Sun, Moon, ShieldAlert, XCircle } from 'lucide-react';
 import { InlineSpinner } from '@/components/ui/LoadingStates';
 import { useTheme } from '@/components/ThemeProvider';
@@ -55,6 +55,8 @@ export default function Login() {
   } = useAuthStore();
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = location.state?.from || '/dashboard';
 
   const handleEmailChange = useCallback(async (value) => {
     setEmail(value);
@@ -111,7 +113,7 @@ export default function Login() {
         if (!password) { setError('Please enter your password'); return; }
         res = await login(email, password);
         if (res.success) {
-          navigate('/dashboard');
+          navigate(returnTo);
           return;
         }
       } else {
@@ -133,7 +135,7 @@ export default function Login() {
       ? await verifySignupOtp(emailInFlow || email, otp)
       : await verifyLoginCode(emailInFlow || email, otp);
 
-    if (res.success) navigate('/dashboard');
+    if (res.success) navigate(returnTo);
     else setError(res.error);
   };
 
