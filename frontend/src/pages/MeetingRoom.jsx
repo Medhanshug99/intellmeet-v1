@@ -43,15 +43,21 @@ export default function MeetingRoom() {
   const [hasJoined, setHasJoined] = useState(false);
   const [userName, setUserName] = useState(user?.name || user?.email?.split('@')[0] || '');
 
+  const currentUserId = user?.id || user?._id;
+  const hostIdObj = currentMeeting?.hostId || currentMeeting?.host;
+  const meetingHostId = typeof hostIdObj === 'object' ? (hostIdObj?.id || hostIdObj?._id) : hostIdObj;
+
   const isHost = Boolean(
-    user?.id && currentMeeting && (
-      currentMeeting.host?.id === user.id ||
-      currentMeeting.host === user.id ||
-      currentMeeting.hostId?.id === user.id ||
-      currentMeeting.hostId?._id === user.id ||
-      currentMeeting.hostId === user.id
-    )
+    currentUserId && 
+    meetingHostId && 
+    String(currentUserId) === String(meetingHostId)
   );
+  
+  useEffect(() => {
+    if (currentMeeting) {
+      console.log('MeetingRoom debug - isHost:', isHost, 'currentUserId:', currentUserId, 'meetingHostId:', meetingHostId);
+    }
+  }, [currentMeeting, isHost, currentUserId, meetingHostId]);
 
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
