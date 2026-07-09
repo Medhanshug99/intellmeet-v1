@@ -353,16 +353,11 @@ export default function MeetingRoom() {
         </div>
 
         <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 z-10">
+          {/* Camera preview */}
           <div className="flex flex-col items-center gap-4">
             <div className="relative w-full aspect-video bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex items-center justify-center bg-black">
               {!isVideoOff && previewStream ? (
-                <video 
-                  ref={videoRef} 
-                  autoPlay 
-                  playsInline 
-                  muted 
-                  className="w-full h-full object-cover transform -scale-x-100" 
-                />
+                <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform -scale-x-100" />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-muted/40 to-muted/10">
                   <div className="h-28 w-28 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-4xl font-bold text-primary-foreground shadow-xl mb-4 ring-4 ring-primary/20">
@@ -374,29 +369,42 @@ export default function MeetingRoom() {
                 </div>
               )}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 z-20">
-                <button
-                  onClick={() => setIsMuted(!isMuted)}
-                  className={`flex items-center justify-center rounded-full h-11 w-11 transition-all shadow-lg backdrop-blur-sm border ${isMuted ? 'bg-destructive text-destructive-foreground border-destructive/50' : 'bg-background/80 hover:bg-background text-foreground border-border'}`}
-                >
+                <button onClick={() => setIsMuted(!isMuted)} className={`flex items-center justify-center rounded-full h-11 w-11 transition-all shadow-lg backdrop-blur-sm border ${isMuted ? 'bg-destructive text-destructive-foreground border-destructive/50' : 'bg-background/80 hover:bg-background text-foreground border-border'}`}>
                   {isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </button>
-                <button
-                  onClick={() => setIsVideoOff(!isVideoOff)}
-                  className={`flex items-center justify-center rounded-full h-11 w-11 transition-all shadow-lg backdrop-blur-sm border ${isVideoOff ? 'bg-destructive text-destructive-foreground border-destructive/50' : 'bg-background/80 hover:bg-background text-foreground border-border'}`}
-                >
+                <button onClick={() => setIsVideoOff(!isVideoOff)} className={`flex items-center justify-center rounded-full h-11 w-11 transition-all shadow-lg backdrop-blur-sm border ${isVideoOff ? 'bg-destructive text-destructive-foreground border-destructive/50' : 'bg-background/80 hover:bg-background text-foreground border-border'}`}>
                   {isVideoOff ? <VideoOff className="h-4 w-4" /> : <VideoIcon className="h-4 w-4" />}
                 </button>
               </div>
             </div>
+            {/* Role badge */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+              isHost
+                ? 'bg-primary/10 border-primary/30 text-primary'
+                : 'bg-white/5 border-white/10 text-muted-foreground'
+            }`}>
+              <div className={`h-1.5 w-1.5 rounded-full ${isHost ? 'bg-primary animate-pulse' : 'bg-white/30'}`} />
+              {isHost ? 'You are the Host' : 'Joining as Participant'}
+            </div>
           </div>
 
+          {/* Right panel — role-specific */}
           <div className="flex flex-col justify-center gap-6">
             <div>
-              <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-2">Meeting Room</p>
-              <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">Ready to join?</h1>
+              <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-2">
+                {isHost ? '🎙 Host Dashboard' : 'Meeting Room'}
+              </p>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground mb-1">
+                {isHost ? 'Start your meeting' : 'Ready to join?'}
+              </h1>
               <p className="text-muted-foreground text-sm">
                 {currentMeeting?.title ? currentMeeting.title : 'Loading meeting details...'}
               </p>
+              {!isHost && (
+                <p className="text-xs text-muted-foreground/60 mt-2">
+                  The host will admit you once they open the room.
+                </p>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -412,20 +420,31 @@ export default function MeetingRoom() {
               />
             </div>
 
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="flex-1 h-12 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium text-sm"
-              >
+            {/* Host: show meeting status info */}
+            {isHost && currentMeeting && (
+              <div className="flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30 text-sm text-muted-foreground">
+                <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                <span>
+                  Meeting is <span className="font-semibold text-foreground">{currentMeeting.status?.toLowerCase()}</span>. Admitting guests will start it.
+                </span>
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-2">
+              <button onClick={() => navigate('/dashboard')} className="flex-1 h-12 rounded-xl border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors font-medium text-sm">
                 Cancel
               </button>
               <button
                 onClick={() => setHasJoined(true)}
                 disabled={!userName.trim()}
-                className="flex-2 h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all disabled:opacity-50 shadow-lg shadow-primary/25 text-sm flex items-center gap-2"
+                className={`flex-2 h-12 px-8 rounded-xl font-semibold transition-all disabled:opacity-50 text-sm flex items-center gap-2 shadow-lg ${
+                  isHost
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/25'
+                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-900/30'
+                }`}
               >
                 <VideoIcon className="h-4 w-4" />
-                Join Now
+                {isHost ? 'Start Meeting' : 'Request to Join'}
               </button>
             </div>
           </div>
@@ -436,10 +455,43 @@ export default function MeetingRoom() {
 
   if (isWaitingForApproval) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-[#0f0f11] text-white">
-        <InlineSpinner size="lg" className="mb-4 text-primary" />
-        <h2 className="text-xl font-semibold mb-2">Waiting for Host</h2>
-        <p className="text-white/50 text-sm">Please wait, the meeting host will let you in soon.</p>
+      <div className="min-h-screen bg-[#0a0a0c] flex items-center justify-center p-6 relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/8 rounded-full blur-[120px]" />
+        </div>
+        <div className="relative z-10 text-center max-w-md w-full">
+          {/* Animated ring */}
+          <div className="relative mx-auto mb-8 w-24 h-24">
+            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
+            <div className="absolute inset-2 rounded-full border-2 border-primary/40 animate-pulse" />
+            <div className="absolute inset-4 rounded-full bg-primary/10 flex items-center justify-center">
+              <InlineSpinner size="md" className="text-primary" />
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-bold text-white mb-2">Waiting for Host</h2>
+          <p className="text-white/40 text-sm mb-1">Your request to join has been sent.</p>
+          <p className="text-white/30 text-xs mb-8">The host will admit you shortly.</p>
+
+          {/* User info card */}
+          <div className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-white/10 mb-8">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-sm font-bold text-white">
+              {userName?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-white">{userName}</p>
+              <p className="text-xs text-white/40">Participant</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="w-full h-11 rounded-xl border border-white/10 text-white/50 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
+          >
+            Cancel &amp; Go Back
+          </button>
+        </div>
       </div>
     );
   }
@@ -476,7 +528,15 @@ export default function MeetingRoom() {
               <h2 className="text-sm font-semibold text-white truncate max-w-[200px]">{currentMeeting?.title || 'Live Room'}</h2>
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30">
                 <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wider">LiveKit</span>
+                <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wider">Live</span>
+              </div>
+              {/* Role badge */}
+              <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                isHost
+                  ? 'bg-primary/20 border-primary/30 text-primary'
+                  : 'bg-white/5 border-white/10 text-white/40'
+              }`}>
+                {isHost ? '🎙 Host' : '👤 Guest'}
               </div>
             </div>
           </div>

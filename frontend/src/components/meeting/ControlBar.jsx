@@ -205,25 +205,29 @@ export function ControlBar({
           <PictureInPicture className="h-4 w-4" />
         </ToolbarBtn>
 
-        {}
-        <ToolbarBtn
-          onClick={toggleRecording}
-          active={isRecording}
-          activeClass="bg-rose-500/20 text-rose-300 border-rose-500/25"
-          label={isRecording ? 'Stop Rec' : 'Record'}
-        >
-          <Radio className={`h-4 w-4 ${isRecording ? 'animate-pulse' : ''}`} />
-        </ToolbarBtn>
+        {/* Recording — host only */}
+        {isHost && (
+          <ToolbarBtn
+            onClick={toggleRecording}
+            active={isRecording}
+            activeClass="bg-rose-500/20 text-rose-300 border-rose-500/25"
+            label={isRecording ? 'Stop Rec' : 'Record'}
+          >
+            <Radio className={`h-4 w-4 ${isRecording ? 'animate-pulse' : ''}`} />
+          </ToolbarBtn>
+        )}
 
-        {}
-        <ToolbarBtn
-          onClick={toggleTranscription}
-          active={isTranscribing}
-          activeClass="bg-sky-500/20 text-sky-300 border-sky-500/25"
-          label={isTranscribing ? 'Stop Captions' : 'Captions'}
-        >
-          <Captions className="h-4 w-4" />
-        </ToolbarBtn>
+        {/* Live captions — host only */}
+        {isHost && (
+          <ToolbarBtn
+            onClick={toggleTranscription}
+            active={isTranscribing}
+            activeClass="bg-sky-500/20 text-sky-300 border-sky-500/25"
+            label={isTranscribing ? 'Stop Captions' : 'Captions'}
+          >
+            <Captions className="h-4 w-4" />
+          </ToolbarBtn>
+        )}
 
         <div className="w-px h-6 bg-white/10 mx-1" />
 
@@ -247,15 +251,17 @@ export function ControlBar({
           <Users className="h-4 w-4" />
         </ToolbarBtn>
 
-        {}
-        <ToolbarBtn
-          onClick={toggleWhiteboard}
-          active={isWhiteboardOpen}
-          activeClass="bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/25"
-          label="Whiteboard"
-        >
-          <Pen className="h-4 w-4" />
-        </ToolbarBtn>
+        {/* Whiteboard — host only */}
+        {isHost && (
+          <ToolbarBtn
+            onClick={toggleWhiteboard}
+            active={isWhiteboardOpen}
+            activeClass="bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/25"
+            label="Whiteboard"
+          >
+            <Pen className="h-4 w-4" />
+          </ToolbarBtn>
+        )}
 
         <div className="w-px h-6 bg-white/10 mx-1" />
 
