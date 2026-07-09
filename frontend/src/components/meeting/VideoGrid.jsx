@@ -82,28 +82,37 @@ export function VideoGrid({ isVideoOff, localReaction }) {
   return (
     <motion.div layout className={`w-full h-full grid gap-3 ${layoutClasses} max-h-[calc(100vh-9rem)] overflow-y-auto custom-scrollbar`}>
       <AnimatePresence>
-        {cameraTracks.map((trackRef) => (
-          <ParticipantTile 
-            key={trackRef.participant.identity} 
-            trackRef={trackRef} 
-            localIdentity={localParticipant?.identity} 
-            isVideoOff={isVideoOff}
-            reaction={activeReactions[trackRef.participant.identity]}
-          />
-        ))}
-        {screenShareTracks.map((trackRef) => (
-          <ScreenShareTile key={trackRef.participant.identity + '_screen'} trackRef={trackRef} localIdentity={localParticipant?.identity} />
-        ))}
+        {cameraTracks.map((trackRef) => {
+          const participantId = trackRef?.participant?.identity || 'unknown';
+          const key = trackRef?.publication?.trackSid || participantId;
+          return (
+            <ParticipantTile 
+              key={key} 
+              trackRef={trackRef} 
+              localIdentity={localParticipant?.identity} 
+              isVideoOff={isVideoOff}
+              reaction={activeReactions[participantId]}
+            />
+          );
+        })}
+        {screenShareTracks.map((trackRef) => {
+          const participantId = trackRef?.participant?.identity || 'unknown';
+          const key = trackRef?.publication?.trackSid || `${participantId}_screen`;
+          return (
+            <ScreenShareTile key={key} trackRef={trackRef} localIdentity={localParticipant?.identity} />
+          );
+        })}
       </AnimatePresence>
     </motion.div>
   );
 }
 
 function ParticipantTile({ trackRef, localIdentity, isVideoOff, reaction }) {
-  const participant = trackRef.participant;
-  const isLocal = localIdentity ? participant.identity === localIdentity : false;
-  const isMuted = !participant.isMicrophoneEnabled;
-  const name = participant.name || 'User';
+  const participant = trackRef?.participant;
+  const identity = participant?.identity;
+  const isLocal = localIdentity && identity ? identity === localIdentity : false;
+  const isMuted = participant ? !participant.isMicrophoneEnabled : true;
+  const name = participant?.name || 'User';
 
   const hasVideo = isLocal ? !isVideoOff : !!trackRef.publication?.track;
 
@@ -161,7 +170,7 @@ function ParticipantTile({ trackRef, localIdentity, isVideoOff, reaction }) {
 }
 
 function ScreenShareTile({ trackRef, localIdentity }) {
-  const name = trackRef.participant.name || 'User';
+  const name = trackRef?.participant?.name || 'User';
 
   return (
     <motion.div

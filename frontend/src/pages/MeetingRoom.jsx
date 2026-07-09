@@ -522,7 +522,7 @@ export default function MeetingRoom() {
         onDismiss={() => setRoomToast(null)}
       />
       <LiveKitRoom
-        video={!isVideoOff ? { facingMode: 'user' } : false}
+        video={!isVideoOff}
         audio={!isMuted}
         token={livekitToken}
         serverUrl={import.meta.env.VITE_LIVEKIT_URL}
