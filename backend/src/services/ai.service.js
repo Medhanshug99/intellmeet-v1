@@ -22,34 +22,40 @@ const processMeetingTranscript = async (transcript) => {
   
   while (attempt < maxRetries) {
     try {
-      const prompt = `
-        You are an AI assistant helping to summarize meetings and extract action items.
-        Read the following meeting transcript and provide:
-        1. A concise meeting overview (2-3 sentences).
-        2. A list of key decisions made.
-        3. A list of blockers or issues raised.
-        4. A list of action items, including what needs to be done and who is responsible. (ownerName must be exact match or "Unassigned").
+      const prompt = `You are an expert meeting analyst AI. Your job is to produce an extremely comprehensive and actionable summary of the following meeting transcript.
 
-        Output the result as a raw JSON object with this exact structure (do not include markdown formatting or backticks around the json):
-        {
-          "overview": "Brief meeting overview...",
-          "keyDecisions": ["Decision 1", "Decision 2"],
-          "blockers": ["Blocker 1", "Blocker 2"],
-          "tasks": [
-            { "content": "Action item description", "ownerName": "Name of owner or 'Unassigned'" }
-          ]
-        }
+Analyze the transcript and extract:
+1. **Overview**: A clear 3-5 sentence executive summary of what was discussed and accomplished.
+2. **Key Decisions**: All decisions that were finalized or agreed upon.
+3. **Action Items / Tasks**: Every task, to-do, or follow-up mentioned, with the responsible person's name (use "Unassigned" only if truly unknown).
+4. **Blockers & Risks**: Anything preventing progress, risks raised, or dependencies flagged.
+5. **Open Questions**: Unresolved questions or topics that need further discussion.
+6. **Follow-ups**: Topics explicitly scheduled for the next meeting.
+7. **Meeting Sentiment**: Overall tone (e.g., productive, tense, brainstorming, update-heavy).
 
-        Meeting Transcript:
-        """
-        ${transcript}
-        """
-      `;
+Return ONLY a raw JSON object with no markdown formatting, no backticks, no explanation text:
+{
+  "overview": "string (3-5 sentences)",
+  "keyDecisions": ["string"],
+  "blockers": ["string"],
+  "openQuestions": ["string"],
+  "followUps": ["string"],
+  "sentiment": "string",
+  "tasks": [
+    { "content": "Detailed task description", "ownerName": "Person's name or 'Unassigned'", "priority": "HIGH|MEDIUM|LOW" }
+  ]
+}
+
+Meeting Transcript:
+"""
+${transcript}
+"""`;
 
       const response = await getOpenAI().chat.completions.create({
         model: 'llama3-70b-8192',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.2
+        temperature: 0.1,
+        max_tokens: 4096
       });
 
       const resultText = response.choices[0].message.content;
@@ -63,22 +69,26 @@ const processMeetingTranscript = async (transcript) => {
         overview: resultJson.overview || 'No overview generated.',
         keyDecisions: resultJson.keyDecisions || [],
         blockers: resultJson.blockers || [],
+        openQuestions: resultJson.openQuestions || [],
+        followUps: resultJson.followUps || [],
+        sentiment: resultJson.sentiment || 'neutral',
         tasks: resultJson.tasks || []
       };
     } catch (error) {
       attempt++;
-      console.error(`[AI Service Error] Attempt ${attempt} failed:`, error);
+      console.error(`[AI Service Error] Attempt ${attempt} failed:`, error.message);
       if (attempt >= maxRetries) {
-        
         return {
           overview: 'AI summary generation failed. Please add manual notes.',
           keyDecisions: [],
           blockers: [],
+          openQuestions: [],
+          followUps: [],
+          sentiment: 'unknown',
           tasks: [],
           failed: true
         };
       }
-      
       await new Promise(res => setTimeout(res, Math.pow(2, attempt) * 1000));
     }
   }
@@ -90,28 +100,32 @@ const askInMeetingBot = async (question, context) => {
   }
 
   try {
-    const prompt = `
-      You are IntellBot, an AI assistant in a live meeting.
-      Answer the user's question concisely based on the recent meeting context provided below.
-      
-      Recent Meeting Context (Transcripts & Chat):
-      """
-      ${context}
-      """
-      
-      User's Question: "${question}"
-    `;
+    const systemPrompt = `You are IntellBot, an intelligent AI assistant embedded in a live meeting room called IntellMeet.
+Your job is to help participants during the meeting by answering questions, summarizing discussions, identifying action items, and providing insights.
+Be concise, helpful, and direct. Format your responses clearly using bullet points where appropriate.
+Always base your answers on the provided meeting context when relevant.`;
+
+    const userPrompt = `Recent Meeting Context (Chat & Live Transcript):
+"""
+${context || 'No context available yet.'}
+"""
+
+Question: ${question}`;
 
     const response = await getOpenAI().chat.completions.create({
-      model: 'llama3-8b-8192',
-      messages: [{ role: 'system', content: prompt }],
-      temperature: 0.5,
+      model: 'llama3-70b-8192',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.4,
+      max_tokens: 1024
     });
 
     return response.choices[0].message.content;
   } catch (error) {
-    console.error('[AI Bot Error]:', error);
-    return "Sorry, I'm having trouble processing that right now.";
+    console.error('[AI Bot Error]:', error.message);
+    return "Sorry, I'm having trouble processing that right now. Please try again.";
   }
 };
 

@@ -275,7 +275,7 @@ export function ControlBar({
         </button>
 
         {}
-        {isHost && currentMeeting?.status !== 'Completed' && (
+        {isHost && currentMeeting?.status !== 'COMPLETED' && (
           <button
             onClick={handleEndAndSummarize}
             disabled={isProcessingAI}

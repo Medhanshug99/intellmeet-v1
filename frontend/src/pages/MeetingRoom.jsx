@@ -54,9 +54,7 @@ export default function MeetingRoom() {
   );
   
   useEffect(() => {
-    if (currentMeeting) {
-      console.log('MeetingRoom debug - isHost:', isHost, 'currentUserId:', currentUserId, 'meetingHostId:', meetingHostId);
-    }
+    // Debug logging removed
   }, [currentMeeting, isHost, currentUserId, meetingHostId]);
 
   const [isMuted, setIsMuted] = useState(false);
@@ -95,6 +93,24 @@ export default function MeetingRoom() {
   useEffect(() => {
     fetchMeetingById(meetingId);
   }, [meetingId, fetchMeetingById]);
+
+  const [meetingTimer, setMeetingTimer] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (hasJoined) {
+      interval = setInterval(() => {
+        setMeetingTimer(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [hasJoined]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     if (!hasJoined) return;
@@ -137,6 +153,10 @@ export default function MeetingRoom() {
 
     socketRef.current.on('receive-message', data => setChatMessages(prev => [...prev, data]));
 
+    socketRef.current.on('receive-transcript', data => {
+      setMeetingTranscript(prev => [...prev, data]);
+    });
+
     socketRef.current.on('mute-all', () => {
       setIsMuted(true);
       showRoomToast('The host has muted everyone.', 'info');
@@ -153,12 +173,20 @@ export default function MeetingRoom() {
           if (event.results[i].isFinal) {
             const finalPhrase = event.results[i][0].transcript;
 
-            setMeetingTranscript(prev => [...prev, `${userName || 'You'}: ${finalPhrase}`]);
+            const timestamp = new Date().toISOString();
+            const transcriptObj = {
+              senderName: userName || 'You',
+              text: finalPhrase,
+              timestamp
+            };
             
-            socketRef.current.emit('send-message', {
+            setMeetingTranscript(prev => [...prev, transcriptObj]);
+            
+            socketRef.current.emit('send-transcript', {
               meetingId,
-              message: `[Caption] ${finalPhrase}`,
-              senderName: userName || 'You'
+              text: finalPhrase,
+              senderName: userName || 'Guest',
+              timestamp
             });
           } else {
             interimTranscript += event.results[i][0].transcript;
@@ -186,7 +214,7 @@ export default function MeetingRoom() {
       
       if (msg.toLowerCase().startsWith('@intellbot')) {
         const chatLog = chatMessages.map(m => `${m.senderName}: ${m.message}`).join('\n');
-        const spokenLog = meetingTranscript.join('\n');
+        const spokenLog = meetingTranscript.map(t => `${t.senderName}: ${t.text}`).join('\n');
         const context = `--- CHAT ---\n${chatLog}\n\n--- SPEECH ---\n${spokenLog}`;
         
         socketRef.current.emit('ask-bot', {
@@ -205,7 +233,7 @@ export default function MeetingRoom() {
     if (isTranscribing) toggleTranscription();
     
     const chatLog = chatMessages.map(m => `${m.senderName}: ${m.message}`).join('\n');
-    const spokenLog = meetingTranscript.join('\n');
+    const spokenLog = meetingTranscript.map(t => `${t.senderName}: ${t.text}`).join('\n');
     const combinedData = `--- CHAT LOGS ---\n${chatLog}\n\n--- SPOKEN TRANSCRIPT ---\n${spokenLog}`.trim();
     
     const result = await processMeetingAI(meetingId, combinedData || 'Meeting concluded with no recorded data.');
@@ -449,7 +477,7 @@ export default function MeetingRoom() {
               </button>
               <button
                 onClick={() => setHasJoined(true)}
-                disabled={!userName.trim()}
+                disabled={!userName.trim() || !currentMeeting}
                 className={`flex-2 h-12 px-8 rounded-xl font-semibold transition-all disabled:opacity-50 text-sm flex items-center gap-2 shadow-lg ${
                   isHost
                     ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-primary/25'
@@ -541,7 +569,7 @@ export default function MeetingRoom() {
               <h2 className="text-sm font-semibold text-white truncate max-w-[200px]">{currentMeeting?.title || 'Live Room'}</h2>
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30">
                 <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wider">Live</span>
+                <span className="text-[10px] font-semibold text-red-400 uppercase tracking-wider">{formatTime(meetingTimer)}</span>
               </div>
               {/* Role badge */}
               <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
@@ -609,6 +637,7 @@ export default function MeetingRoom() {
       <SidePanel 
         showPanel={showPanel} activeTab={activeTab} setActiveTab={setActiveTab}
         chatMessages={chatMessages} messageInput={messageInput} setMessageInput={setMessageInput} sendMessage={sendMessage}
+        meetingTranscript={meetingTranscript}
         currentMeeting={currentMeeting} navigate={navigate} userName={userName} user={user}
         isHost={isHost} handleMuteAll={handleMuteAll} handlePublishSummary={handlePublishSummary}
         copyLink={copyLink} linkCopied={linkCopied}

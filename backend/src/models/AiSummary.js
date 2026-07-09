@@ -15,6 +15,9 @@ const aiSummarySchema = new mongoose.Schema({
   overview: String,
   keyDecisions: [String],
   blockers: [String],
+  openQuestions: [String],
+  followUps: [String],
+  sentiment: String,
   editHistory: [{
     editedBy: {
       type: mongoose.Schema.Types.ObjectId,

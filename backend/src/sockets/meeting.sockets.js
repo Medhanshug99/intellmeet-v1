@@ -75,6 +75,10 @@ module.exports = (io) => {
       io.to(meetingId).emit('receive-message', { message, senderName, timestamp: new Date() });
     });
 
+    socket.on('send-transcript', ({ meetingId, text, senderName, timestamp }) => {
+      io.to(meetingId).emit('receive-transcript', { text, senderName, timestamp });
+    });
+
     socket.on('mute-all', ({ meetingId }) => {
       socket.to(meetingId).emit('mute-all');
     });

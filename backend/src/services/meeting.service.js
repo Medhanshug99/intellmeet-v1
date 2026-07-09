@@ -60,12 +60,6 @@ const getMeetingById = async (meetingId, userId) => {
     throw new AppError('Meeting not found', 404);
   }
 
-  const workspace = await Workspace.findById(meeting.workspaceId);
-
-  if (!workspace) {
-    throw new AppError('Workspace not found', 404);
-  }
-
   return meeting;
 };
 
@@ -197,7 +191,16 @@ const processMeetingAI = async (meetingId, transcript, userId) => {
       const aiResult = await aiService.processMeetingTranscript(transcript);
       await AiSummary.findOneAndUpdate(
         { meetingId },
-        { meetingId, status: 'DRAFT', overview: aiResult.overview, keyDecisions: aiResult.keyDecisions, blockers: aiResult.blockers },
+        { 
+          meetingId, 
+          status: 'DRAFT', 
+          overview: aiResult.overview, 
+          keyDecisions: aiResult.keyDecisions, 
+          blockers: aiResult.blockers,
+          openQuestions: aiResult.openQuestions,
+          followUps: aiResult.followUps,
+          sentiment: aiResult.sentiment
+        },
         { upsert: true, new: true }
       );
       for (const taskData of (aiResult.tasks || [])) {
@@ -231,6 +234,16 @@ const updateMeetingSummary = async (meetingId, summaryData, userId) => {
   const updateFields = {};
   for (const key of allowed) {
     if (summaryData[key] !== undefined) updateFields[key] = summaryData[key];
+  }
+
+  // Update AiSummary status separately
+  if (summaryData.aiSummaryStatus) {
+    const AiSummary = require('../models/AiSummary');
+    await AiSummary.findOneAndUpdate(
+      { meetingId },
+      { status: summaryData.aiSummaryStatus },
+      { new: true }
+    );
   }
 
   const updatedMeeting = await Meeting.findByIdAndUpdate(meetingId, updateFields, { new: true });
