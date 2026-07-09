@@ -1,12 +1,13 @@
-import { MessageSquare, Users, FileText, Sparkles, Send, MicOff, Mic, VideoOff, Video as VideoIcon } from 'lucide-react';
+import { MessageSquare, Users, FileText, Sparkles, Send, MicOff, Mic, VideoOff, Video as VideoIcon, Check, X } from 'lucide-react';
 import { useParticipants, useLocalParticipant } from '@livekit/components-react';
 
 export function SidePanel({
   showPanel, activeTab, setActiveTab,
   chatMessages, messageInput, setMessageInput, sendMessage,
-  currentMeeting, navigate, user,
+  currentMeeting, navigate, userName, user,
   isHost, handleMuteAll, handlePublishSummary,
-  copyLink, linkCopied
+  copyLink, linkCopied,
+  waitingParticipants, approveParticipant, rejectParticipant
 }) {
   const participants = useParticipants();
   const { localParticipant } = useLocalParticipant();
@@ -35,6 +36,26 @@ export function SidePanel({
 
       {activeTab === 'participants' && (
         <div className="flex-1 flex flex-col min-h-0">
+          {isHost && waitingParticipants && waitingParticipants.length > 0 && (
+            <div className="p-3 border-b border-white/[0.06] shrink-0">
+               <span className="text-xs font-semibold text-white/50 uppercase tracking-wider block mb-2">Waiting Room ({waitingParticipants.length})</span>
+               <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+                 {waitingParticipants.map(p => (
+                   <div key={p.socketId} className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/10">
+                     <span className="text-sm font-medium text-white truncate mr-2">{p.name || 'Guest'}</span>
+                     <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => approveParticipant(p.socketId)} className="p-1 rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors" title="Approve">
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => rejectParticipant(p.socketId)} className="p-1 rounded bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors" title="Reject">
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+            </div>
+          )}
           <div className="p-3 pb-1 flex items-center justify-between shrink-0">
             <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">In Meeting</span>
             <div className="flex items-center gap-2">

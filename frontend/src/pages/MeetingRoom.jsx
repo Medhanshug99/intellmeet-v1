@@ -73,6 +73,8 @@ export default function MeetingRoom() {
 
   const socketRef = useRef(null);
   const [livekitToken, setLivekitToken] = useState('');
+  const [isWaitingForApproval, setIsWaitingForApproval] = useState(false);
+  const [waitingParticipants, setWaitingParticipants] = useState([]);
 
   useEffect(() => {
     fetchMeetingById(meetingId);
@@ -81,19 +83,43 @@ export default function MeetingRoom() {
   useEffect(() => {
     if (!hasJoined) return;
 
+    socketRef.current = io(SOCKET_URL);
+    const isHostUser = currentMeeting?.host?.id === user?.id || currentMeeting?.host === user?.id || currentMeeting?.hostId === user?.id;
+
     const initConnection = async () => {
       try {
         const res = await api.get(`/meetings/${meetingId}/token`);
         setLivekitToken(res.data.data.token);
+        socketRef.current.emit('join-meeting', { meetingId, userId: user?.id, name: userName || 'Guest' });
       } catch (err) {
         console.error("Failed to get LiveKit token", err);
+        showRoomToast("Failed to join meeting", "error");
       }
     };
-    initConnection();
 
-    socketRef.current = io(SOCKET_URL);
-    socketRef.current.emit('join-meeting', { meetingId, userId: user?.id, name: userName || 'Guest' });
-    
+    if (isHostUser) {
+      initConnection();
+      socketRef.current.emit('host-joined', { meetingId });
+    } else {
+      setIsWaitingForApproval(true);
+      socketRef.current.emit('request-join', { meetingId, userId: user?.id, name: userName || 'Guest' });
+    }
+
+    socketRef.current.on('join-approved', () => {
+      setIsWaitingForApproval(false);
+      showRoomToast('Host approved your request to join!', 'success');
+      initConnection();
+    });
+
+    socketRef.current.on('join-rejected', () => {
+      showRoomToast('Host declined your request to join.', 'error', 5000);
+      setTimeout(() => navigate('/dashboard'), 3000);
+    });
+
+    socketRef.current.on('waiting-list-update', (list) => {
+      setWaitingParticipants(list);
+    });
+
     socketRef.current.on('receive-message', data => setChatMessages(prev => [...prev, data]));
 
     socketRef.current.on('mute-all', () => {
@@ -270,6 +296,14 @@ export default function MeetingRoom() {
     }
   };
 
+  const approveParticipant = (socketId) => {
+    if (socketRef.current) socketRef.current.emit('approve-participant', { meetingId, socketId });
+  };
+
+  const rejectParticipant = (socketId) => {
+    if (socketRef.current) socketRef.current.emit('reject-participant', { meetingId, socketId });
+  };
+
   const [previewStream, setPreviewStream] = useState(null);
   const videoRef = useRef(null);
 
@@ -400,6 +434,16 @@ export default function MeetingRoom() {
     );
   }
 
+  if (isWaitingForApproval) {
+    return (
+      <div className="h-screen flex flex-col items-center justify-center bg-[#0f0f11] text-white">
+        <InlineSpinner size="lg" className="mb-4 text-primary" />
+        <h2 className="text-xl font-semibold mb-2">Waiting for Host</h2>
+        <p className="text-white/50 text-sm">Please wait, the meeting host will let you in soon.</p>
+      </div>
+    );
+  }
+
   if (!livekitToken) {
     return <div className="h-screen flex items-center justify-center bg-[#0f0f11] text-white"><InlineSpinner size="lg" className="mr-3"/> Connecting to LiveKit...</div>;
   }
@@ -495,6 +539,9 @@ export default function MeetingRoom() {
         currentMeeting={currentMeeting} navigate={navigate} userName={userName} user={user}
         isHost={isHost} handleMuteAll={handleMuteAll} handlePublishSummary={handlePublishSummary}
         copyLink={copyLink} linkCopied={linkCopied}
+        waitingParticipants={waitingParticipants}
+        approveParticipant={approveParticipant}
+        rejectParticipant={rejectParticipant}
       />
       </LiveKitRoom>
     </div>
