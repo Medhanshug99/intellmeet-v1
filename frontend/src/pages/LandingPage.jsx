@@ -267,17 +267,7 @@ export default function LandingPage() {
             </motion.button>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.9, duration: 0.6 }}
-            className="flex items-center justify-center gap-1.5 mt-8 text-xs text-muted-foreground"
-          >
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-3 w-3 fill-current" style={{ color: 'hsl(38 92% 55%)' }} />
-            ))}
-            <span className="ml-1">Loved by 10,000+ teams worldwide</span>
-          </motion.div>
+
         </div>
 
         <motion.div
