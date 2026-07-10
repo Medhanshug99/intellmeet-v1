@@ -60,9 +60,10 @@ const getMeetingById = async (meetingId, userId) => {
     throw new AppError('Meeting not found', 404);
   }
 
+  // Removed workspace membership check so external guests can view meeting details
   const workspace = await Workspace.findById(meeting.workspaceId);
-  if (!workspace || !isWorkspaceMember(workspace, userId)) {
-    throw new AppError('Not authorized to view this meeting', 403);
+  if (!workspace) {
+    throw new AppError('Workspace not found', 404);
   }
 
   return meeting;
@@ -121,14 +122,11 @@ const joinMeeting = async (meetingId, userId) => {
     throw new AppError(`Cannot join a meeting that is ${meeting.status.toLowerCase()}`, 400);
   }
 
+  // Removed workspace membership check so external guests can join after host approval
   const workspace = await Workspace.findById(meeting.workspaceId);
 
   if (!workspace) {
     throw new AppError('Workspace not found', 404);
-  }
-
-  if (!isWorkspaceMember(workspace, userId)) {
-    throw new AppError('Not authorized to join this meeting', 403);
   }
 
   const alreadyJoined = meeting.participantIds.some(p => p.toString() === userId.toString());
