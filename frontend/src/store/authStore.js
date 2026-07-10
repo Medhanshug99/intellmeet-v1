@@ -10,7 +10,7 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh') {
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/auth/refresh' && originalRequest.url !== '/auth/logout') {
       originalRequest._retry = true;
       try {
         const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
@@ -139,11 +139,12 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       set({ isLoading: true });
-      await api.post('/auth/logout');
       delete api.defaults.headers.common['Authorization'];
-      set({ user: null, isAuthenticated: false, isLoading: false });
+      set({ user: null, isAuthenticated: false });
+      await api.post('/auth/logout');
     } catch (err) {
       console.error('Logout failed', err);
+    } finally {
       set({ isLoading: false });
     }
   },
