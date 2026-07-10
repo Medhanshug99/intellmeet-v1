@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore';
 import ErrorBoundary from './components/ErrorBoundary';
 import { FullPageLoader } from './components/ui/LoadingStates';
 
+const LandingPage = React.lazy(() => import('./pages/LandingPage'));
 const Login = React.lazy(() => import('./pages/Login'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const MeetingRoom = React.lazy(() => import('./pages/MeetingRoom'));
@@ -34,6 +35,7 @@ function App() {
         <div className="min-h-screen bg-background font-sans antialiased text-foreground selection:bg-stone-200">
           <Suspense fallback={<FullPageLoader message="Loading application..." />}>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route 
                 path="/dashboard" 
@@ -75,7 +77,7 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </div>

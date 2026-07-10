@@ -34,7 +34,8 @@ const isValidEmail = (email) => {
 };
 
 export default function Login() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const location = useLocation();
+  const [isSignUp, setIsSignUp] = useState(location.state?.startSignup ?? false);
 
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -55,7 +56,6 @@ export default function Login() {
   } = useAuthStore();
 
   const navigate = useNavigate();
-  const location = useLocation();
   const returnTo = location.state?.from || '/dashboard';
 
   const handleEmailChange = useCallback(async (value) => {
