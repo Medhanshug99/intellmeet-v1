@@ -8,7 +8,6 @@ import {
 import { useTheme } from '@/components/ThemeProvider';
 import { Sun, Moon } from 'lucide-react';
 
-// ─── Theme Toggle ────────────────────────────────────────────────────────────
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   return (
@@ -21,7 +20,6 @@ function ThemeToggle() {
   );
 }
 
-// ─── Animated Orb Background ─────────────────────────────────────────────────
 function OrbBackground() {
   const mouseX = useMotionValue(typeof window !== 'undefined' ? window.innerWidth / 2 : 600);
   const mouseY = useMotionValue(typeof window !== 'undefined' ? window.innerHeight / 2 : 400);
@@ -49,29 +47,24 @@ function OrbBackground() {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Grid */}
       <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
         style={{
           backgroundImage: 'linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
         }}
       />
-      {/* Orb 1 – teal */}
       <motion.div
-        style={{ x: orb1X, y: orb1Y }}
+        style={{ x: orb1X, y: orb1Y, background: 'hsl(174 72% 34%)' }}
         className="absolute -top-40 -left-40 w-[700px] h-[700px] rounded-full opacity-20 dark:opacity-15 blur-[120px]"
         animate={{ scale: [1, 1.08, 1] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ x: orb1X, y: orb1Y, background: 'hsl(174 72% 34%)' }}
       />
-      {/* Orb 2 – amber */}
       <motion.div
         style={{ x: orb2X, y: orb2Y, background: 'hsl(38 92% 60%)' }}
         className="absolute -bottom-60 -right-40 w-[600px] h-[600px] rounded-full opacity-15 dark:opacity-10 blur-[100px]"
         animate={{ scale: [1, 1.12, 1] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
       />
-      {/* Orb 3 – subtle teal center */}
       <motion.div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full opacity-10 dark:opacity-8 blur-[80px]"
         animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.18, 0.1] }}
@@ -82,7 +75,6 @@ function OrbBackground() {
   );
 }
 
-// ─── Scroll-triggered section wrapper ────────────────────────────────────────
 function FadeInSection({ children, delay = 0, className = '' }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
@@ -99,7 +91,6 @@ function FadeInSection({ children, delay = 0, className = '' }) {
   );
 }
 
-// ─── Feature Card ─────────────────────────────────────────────────────────────
 function FeatureCard({ icon: Icon, title, description, delay }) {
   return (
     <FadeInSection delay={delay}>
@@ -108,7 +99,6 @@ function FeatureCard({ icon: Icon, title, description, delay }) {
         transition={{ type: 'spring', stiffness: 300, damping: 25 }}
         className="saas-card p-7 group cursor-default relative overflow-hidden"
       >
-        {/* Hover glow */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-xl"
           style={{ background: 'radial-gradient(circle at 50% 0%, hsl(174 72% 34% / 0.07), transparent 70%)' }}
         />
@@ -125,7 +115,6 @@ function FeatureCard({ icon: Icon, title, description, delay }) {
   );
 }
 
-// ─── Stat Item ────────────────────────────────────────────────────────────────
 function StatItem({ value, label, delay }) {
   return (
     <FadeInSection delay={delay} className="text-center">
@@ -137,7 +126,6 @@ function StatItem({ value, label, delay }) {
   );
 }
 
-// ─── Main Landing Page ────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
   const featuresRef = useRef(null);
@@ -188,7 +176,6 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
 
-      {/* ── Navbar ──────────────────────────────────────────────────────────── */}
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -222,12 +209,10 @@ export default function LandingPage() {
         </div>
       </motion.nav>
 
-      {/* ── Hero ────────────────────────────────────────────────────────────── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-16">
         <OrbBackground />
 
         <div className="relative z-10 max-w-4xl mx-auto">
-          {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -242,7 +227,6 @@ export default function LandingPage() {
             New — AI meeting summaries are here
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -255,7 +239,6 @@ export default function LandingPage() {
             Ship faster.
           </motion.h1>
 
-          {/* Sub-headline */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -265,7 +248,6 @@ export default function LandingPage() {
             IntellMeet brings HD video meetings, real-time project boards, and deep analytics into one beautiful workspace — so your team spends less time switching tabs and more time doing great work.
           </motion.p>
 
-          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -291,7 +273,6 @@ export default function LandingPage() {
             </motion.button>
           </motion.div>
 
-          {/* Social proof micro-line */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -305,7 +286,6 @@ export default function LandingPage() {
           </motion.div>
         </div>
 
-        {/* Floating product preview card */}
         <motion.div
           initial={{ opacity: 0, y: 60, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -314,7 +294,6 @@ export default function LandingPage() {
         >
           <div className="saas-card overflow-hidden shadow-2xl"
             style={{ boxShadow: '0 40px 80px -20px hsl(174 72% 34% / 0.25)' }}>
-            {/* Fake browser chrome */}
             <div className="flex items-center gap-2 px-4 py-3 border-b border-border" style={{ background: 'hsl(var(--muted))' }}>
               <div className="w-3 h-3 rounded-full bg-red-400/70" />
               <div className="w-3 h-3 rounded-full bg-yellow-400/70" />
@@ -324,9 +303,7 @@ export default function LandingPage() {
                 app.intellmeet.io/dashboard
               </div>
             </div>
-            {/* Fake dashboard preview */}
             <div className="p-6 grid grid-cols-3 gap-4" style={{ background: 'hsl(var(--card))' }}>
-              {/* Sidebar mock */}
               <div className="col-span-1 space-y-2">
                 {['Dashboard', 'Meetings', 'Project Board', 'Analytics'].map((item, i) => (
                   <div key={i} className={`h-8 rounded-lg px-3 flex items-center text-xs font-medium transition-all ${i === 0 ? 'text-white' : 'text-muted-foreground'}`}
@@ -335,7 +312,6 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              {/* Content mock */}
               <div className="col-span-2 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   {[{ label: 'Meetings Today', value: '4' }, { label: 'Team Members', value: '12' }].map((s, i) => (
@@ -360,7 +336,6 @@ export default function LandingPage() {
           </div>
         </motion.div>
 
-        {/* Scroll hint */}
         <motion.button
           onClick={scrollToFeatures}
           initial={{ opacity: 0 }}
@@ -377,7 +352,6 @@ export default function LandingPage() {
         </motion.button>
       </section>
 
-      {/* ── Stats Bar ───────────────────────────────────────────────────────── */}
       <section className="py-20 px-6 border-y border-border" style={{ background: 'hsl(var(--muted) / 0.4)' }}>
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-10">
           <StatItem value="10k+" label="Teams worldwide" delay={0} />
@@ -387,7 +361,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features ────────────────────────────────────────────────────────── */}
       <section ref={featuresRef} className="py-28 px-6">
         <div className="max-w-5xl mx-auto">
           <FadeInSection className="text-center mb-16">
@@ -410,7 +383,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Testimonials ────────────────────────────────────────────────────── */}
       <section className="py-24 px-6 border-y border-border" style={{ background: 'hsl(var(--muted) / 0.3)' }}>
         <div className="max-w-5xl mx-auto">
           <FadeInSection className="text-center mb-14">
@@ -443,9 +415,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Final CTA ───────────────────────────────────────────────────────── */}
       <section className="py-32 px-6 relative overflow-hidden">
-        {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-[100px] opacity-15"
             style={{ background: 'hsl(174 72% 40%)' }} />
@@ -483,7 +453,6 @@ export default function LandingPage() {
         </FadeInSection>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────────────────────────── */}
       <footer className="py-8 px-6 border-t border-border">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
