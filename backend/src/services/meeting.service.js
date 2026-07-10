@@ -60,6 +60,11 @@ const getMeetingById = async (meetingId, userId) => {
     throw new AppError('Meeting not found', 404);
   }
 
+  const workspace = await Workspace.findById(meeting.workspaceId);
+  if (!workspace || !isWorkspaceMember(workspace, userId)) {
+    throw new AppError('Not authorized to view this meeting', 403);
+  }
+
   return meeting;
 };
 
@@ -120,6 +125,10 @@ const joinMeeting = async (meetingId, userId) => {
 
   if (!workspace) {
     throw new AppError('Workspace not found', 404);
+  }
+
+  if (!isWorkspaceMember(workspace, userId)) {
+    throw new AppError('Not authorized to join this meeting', 403);
   }
 
   const alreadyJoined = meeting.participantIds.some(p => p.toString() === userId.toString());

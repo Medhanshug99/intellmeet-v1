@@ -167,12 +167,6 @@ export default function LandingPage() {
     },
   ];
 
-  const testimonials = [
-    { name: 'Priya S.', role: 'Engineering Lead', quote: 'Finally a meeting tool that doesn\'t get in the way. The project board integration is 🔥' },
-    { name: 'Marcus T.', role: 'Product Manager', quote: 'Analytics alone saved us hours of manual reporting every week.' },
-    { name: 'Aiko M.', role: 'Startup Founder', quote: 'Set up in minutes, runs like butter. Our remote team finally feels like one room.' },
-  ];
-
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
 
@@ -383,37 +377,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-24 px-6 border-y border-border" style={{ background: 'hsl(var(--muted) / 0.3)' }}>
-        <div className="max-w-5xl mx-auto">
-          <FadeInSection className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
-              Trusted by teams who ship
-            </h2>
-          </FadeInSection>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <FadeInSection key={t.name} delay={i * 0.1}>
-                <motion.div
-                  whileHover={{ y: -4 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                  className="saas-card p-6 flex flex-col gap-4"
-                >
-                  <div className="flex gap-0.5">
-                    {[...Array(5)].map((_, si) => (
-                      <Star key={si} className="h-3.5 w-3.5 fill-current" style={{ color: 'hsl(38 92% 55%)' }} />
-                    ))}
-                  </div>
-                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">"{t.quote}"</p>
-                  <div>
-                    <div className="text-sm font-semibold text-foreground">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.role}</div>
-                  </div>
-                </motion.div>
-              </FadeInSection>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       <section className="py-32 px-6 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
